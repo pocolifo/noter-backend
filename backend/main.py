@@ -50,7 +50,8 @@ def is_authenticated(request: Request) -> bool:
 
 @app.post("/items/create/note")
 async def create_note(request: Request):
-    noteinfo = await request.json()
+    try: noteinfo = await request.json()
+    except json.decoder.JSONDecodeError: return Response(status_code=400)
     
     if not is_authenticated(request): return Response(status_code=401)
     if not does_path_exist(noteinfo["path"]): return Response(status_code=400)
@@ -63,7 +64,8 @@ async def create_note(request: Request):
 
 @app.post("/items/create/studyguide")
 async def create_studyguide(request: Request):
-    noteinfo = await request.json()
+    try: noteinfo = await request.json()
+    except json.decoder.JSONDecodeError: return Response(status_code=400)
     
     if not is_authenticated(request): return Response(status_code=401)
     if not does_path_exist(noteinfo["path"]): return Response(status_code=400)
@@ -76,7 +78,8 @@ async def create_studyguide(request: Request):
 
 @app.post("/items/create/folder") 
 async def create_folder(request: Request):
-    folderinfo = await request.json()
+    try: folderinfo = await request.json()
+    except json.decoder.JSONDecodeError: return Response(status_code=400)
     
     if not is_authenticated(request): return Response(status_code=401)
     if not does_path_exist(folderinfo["path"]): return Response(status_code=400)
@@ -103,7 +106,8 @@ async def delete_item(request: Request, id: str):
 
 @app.post("/items/update/metadata")
 async def update_metadata(request: Request, id: str):
-    updateinfo = await request.json()
+    try: updateinfo = await request.json()
+    except json.decoder.JSONDecodeError: return Response(status_code=400)
     
     if not is_authenticated(request): return JSONResponse(status_code=401, content={})
     if not does_path_exist(updateinfo["path"]): return Response(status_code=400)
@@ -129,7 +133,8 @@ async def update_metadata(request: Request, id: str):
     
 @app.put("/items/update/blocks")
 async def update_blocks(request: Request, id: str):
-    newblockinfo = await request.json()
+    try: newblockinfo = await request.json()
+    except json.decoder.JSONDecodeError: return Response(status_code=400)
     
     if not is_authenticated(request): return Response(status_code=401)
 
@@ -147,7 +152,8 @@ async def list_notes(request: Request):
     ret_notes = []
     if not is_authenticated(request): return Response(status_code=401)
     
-    path = await request.json()
+    try: path = await request.json()
+    except json.decoder.JSONDecodeError: return Response(status_code=400)
     
     if not does_path_exist(path): return Response(status_code=400)
             
