@@ -1,4 +1,6 @@
-import uvicorn, json
+import uvicorn
+import json
+from uuid import UUID
 from fastapi import FastAPI
 from starlette.requests import Request
 from starlette.responses import Response
@@ -164,6 +166,19 @@ async def list_notes(request: Request):
             
     return JSONResponse(status_code=200, content=ret_notes)    
             
+@app.get("/items/{id}")
+async def get_item(request: Request, id: UUID):
+    if not is_authenticated(request): return Response(status_code=401)
+
+    for f in folders[0]:
+        if f['id'] == str(id):
+            return JSONResponse(f, status_code=200)
+
+    for n in notes[0]:
+        if n['id'] == str(id):
+            return JSONResponse(n, status_code=200)
+    
+    return Response(status_code=404)
 
 class AuthData(BaseModel):
     email: str
