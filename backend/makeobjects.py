@@ -1,7 +1,22 @@
 from uuid import uuid4
 from datetime import datetime
+from starlette.requests import Request
+from noterdb import DB
+from json import dumps as jsondumps
 
-def make_note(name: str, path: list, studyguide: bool): # update more info as db is created
+DB_NAME = ""
+DB_USER = ""
+DB_PASS = ""
+DB_HOST = ""
+DB_PORT = ""
+
+db = DB(DB_NAME, DB_USER, DB_PASS, DB_HOST, DB_PORT)
+try: db.connect()
+except:
+    print("COULD NOT CONNECT TO DATABASE!")
+    exit(0)
+
+def make_note(request: Request, name: str, path: list, studyguide: bool): # update more info as db is created
     type_ = "studyguide" if studyguide else "note"
     newnote = '''
 {{
@@ -9,25 +24,11 @@ def make_note(name: str, path: list, studyguide: bool): # update more info as db
     "type": "{1}",
     "metadata": {{
         "name": "{2}",
-        "path": "{3}",
+        "path": {3},
         "lastEdited": "",
         "createdOn": "{4}",
-        "owner": {{
-            "id": "90da6511-685e-4538-a2cf-19c112616c8f",
-            "email": "example@example.com",
-            "pass": "htw7g8h234bsj",
-            "lastSignedIn": "2023-06-19T01:17:05.565Z",
-            "joinedOn": "2023-06-19T01:17:05.565Z",
-            "history": [
-                {{
-                    "type": "studentTypeSurveyResponse",
-                    "timestamp": "2023-06-19T01:17:05.565Z",
-                    "data": {{
-                        "responded": "college"
-                    }}
-                }}
-            ]
-        }}
+        "owner": {5}
+            
     }},
     "blocks": [
         {{
@@ -44,42 +45,27 @@ def make_note(name: str, path: list, studyguide: bool): # update more info as db
         }}
     ]
 }}
-'''.format(str(uuid4()), type_, name, str(path), datetime.now().isoformat())
+'''.format(str(uuid4()), type_, name, jsondumps(path), datetime.now().isoformat(),
+            db.get_user_data_by_id(str(request.cookies.get("authenticate"))))
     return newnote
 
-def make_folder(name: str, path: list): # update more info as db is created
+def make_folder(request: Request, name: str, path: list): # update more info as db is created
     new_folder = '''
 {{
     "id": "{0}",
     "type": "folder",
     "metadata": {{
         "name": "{1}",
-        "path": "{2}",
+        "path": {2},
         "lastEdited": "",
         "createdOn": "{3}",
-        "owner": {{
-            "id": "90da6511-685e-4538-a2cf-19c112616c8f",
-            "email": "example@example.com",
+        "owner": {4}
             
-            "lastSignedIn": "2023-06-19T01:17:05.565Z",
-            "joinedOn": "2023-06-19T01:17:05.565Z",
-            "history": [
-                {{
-                    "type": "studentTypeSurveyResponse",
-                    "timestamp": "2023-06-19T01:17:05.565Z",
-                    "data": {{
-                        "responded": "college"
-                    }}
-                }}
-            ]
-        }}
     }}
 }}
-'''.format(str(uuid4()), name, str(path), datetime.now().isoformat())
+'''.format(str(uuid4()), name, jsondumps(path), datetime.now().isoformat(),
+            db.get_user_data_by_id(str(request.cookies.get("authenticate"))))
     return new_folder
-
-
-
 
 
 

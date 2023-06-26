@@ -1,6 +1,4 @@
-import uvicorn
-import json
-from uuid import UUID
+import uvicorn, json
 from fastapi import FastAPI
 from starlette.requests import Request
 from starlette.responses import Response
@@ -9,58 +7,48 @@ from pydantic import BaseModel
 
 from makeobjects import make_note, make_folder
 from utils import get_current_isodate, hash_password
+from noterdb import DB
 
 app = FastAPI()
 API_VERSION = 1
 
-default_user = { # USE THE EMAIL AND PASSWORD HERE FOR /authenticate
-    "id": "90da6511-685e-4538-a2cf-19c112616c8f",
-    "email": "example@example.com",
-    "pass": "htw7g8h234bsj",
-    "lastSignedIn": "2023-06-19T01:17:05.565Z",
-    "joinedOn": "2023-06-19T01:17:05.565Z",
-    "history": [
-        {
-            "type": "studentTypeSurveyResponse",
-            "timestamp": "2023-06-19T01:17:05.565Z",
-            "data": {
-                "responded": "college"
-            }
-        }
-    ]
-}
+DB_NAME = ""
+DB_USER = ""
+DB_PASS = ""
+DB_HOST = ""
+DB_PORT = ""
 
-# MOCK DATABASE
-users = [default_user] #GetUserList(database)
-notes = [[], []]
-folders = [[], []]
+db = DB(DB_NAME, DB_USER, DB_PASS, DB_HOST, DB_PORT)
+try: db.connect()
+except:
+    print("COULD NOT CONNECT TO DATABASE!")
+    exit(0)
 
-def does_path_exist(fullpath: list):
-    if len(fullpath) == 0: return True
-    for f in folders[0]: # Just like below, assume the first element will be the correct one
-        if str(f["metadata"]["name"]) == str(fullpath[-1]):
-            if str(f["metadata"]["path"]) == str(fullpath[:-1]): # Remove last element and compare rest of path
-                return True
-    return False
+
+if __name__ == "__main__":
+   uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+   
+   
+@app.get("/items/{id}")
+async def get_item(request: Request, id: str):
+    if not db.is_authenticated(request): return Response(status_code=401)
+
+    item = db.get_item(request, id)
+    if not item: return Response(status_code=404)
+    return JSONResponse(json.loads(item), status_code=200)
+
     
-def is_authenticated(request: Request) -> bool:
-    for u in users:
-        if u["id"] == request.cookies.get("authenticate"):
-            return True
-    return False
-############## /
-
 @app.post("/items/create/note")
 async def create_note(request: Request):
     try: noteinfo = await request.json()
     except json.decoder.JSONDecodeError: return Response(status_code=400)
     
-    if not is_authenticated(request): return Response(status_code=401)
-    if not does_path_exist(noteinfo["path"]): return Response(status_code=400)
+    if not db.is_authenticated(request): return Response(status_code=401)
+    if not db.does_path_exist(request, noteinfo["path"]): return Response(status_code=400)
     
-    note = make_note(noteinfo["name"], noteinfo["path"], False)
+    note = make_note(request, noteinfo["name"], noteinfo["path"], False)
     
-    notes[0].append(json.loads(str(note)))
+    db.insert_note(note)
     return JSONResponse(status_code=201, content=json.loads(note))
 
 
@@ -69,12 +57,12 @@ async def create_studyguide(request: Request):
     try: noteinfo = await request.json()
     except json.decoder.JSONDecodeError: return Response(status_code=400)
     
-    if not is_authenticated(request): return Response(status_code=401)
-    if not does_path_exist(noteinfo["path"]): return Response(status_code=400)
+    if not db.is_authenticated(request): return Response(status_code=401)
+    if not db.does_path_exist(request, noteinfo["path"]): return Response(status_code=400)
     
-    note = make_note(noteinfo["name"], noteinfo["path"], True)
+    note = make_note(request, noteinfo["name"], noteinfo["path"], True)
     
-    notes[0].append(json.loads(note))
+    db.insert_note(note)
     return JSONResponse(status_code=201, content=json.loads(note))
 
 
@@ -83,27 +71,22 @@ async def create_folder(request: Request):
     try: folderinfo = await request.json()
     except json.decoder.JSONDecodeError: return Response(status_code=400)
     
-    if not is_authenticated(request): return Response(status_code=401)
-    if not does_path_exist(folderinfo["path"]): return Response(status_code=400)
+    if not db.is_authenticated(request): return Response(status_code=401)
+    if not db.does_path_exist(request, folderinfo["path"]): return Response(status_code=400)
     
-    folder = make_folder(folderinfo["name"], folderinfo["path"])
+    folder = make_folder(request, folderinfo["name"], folderinfo["path"])
     
-    folders[0].append(json.loads(folder))
+    db.insert_folder(folder)
     return JSONResponse(status_code=201, content=json.loads(folder))
 
 @app.delete("/items/delete")
 async def delete_item(request: Request, id: str):
-    if not is_authenticated(request): return Response(status_code=401)
+    if not db.is_authenticated(request): return Response(status_code=401)
 
-    for f in folders[0]:
-        if f["id"] == id: folders[0].remove(f) # RemoveElem(folderId, userId)
-        return Response(status_code=204)
-
-    for n in notes[0]:
-        if n["id"] == id: notes[0].remove(n) # RemoveElem(noteId, userId)
-        return Response(status_code=204)
+    db.delete_item_by_id(request, id)
+    return Response(status_code=204)
         
-    return Response(status_code=400)
+    #return Response(status_code=400)
 
 
 @app.post("/items/update/metadata")
@@ -111,24 +94,10 @@ async def update_metadata(request: Request, id: str):
     try: updateinfo = await request.json()
     except json.decoder.JSONDecodeError: return Response(status_code=400)
     
-    if not is_authenticated(request): return JSONResponse(status_code=401, content={})
-    if not does_path_exist(updateinfo["path"]): return Response(status_code=400)
+    if not db.is_authenticated(request): return JSONResponse(status_code=401, content={})
+    if not db.does_path_exist(request, updateinfo["path"]): return Response(status_code=400)
     
-    for f in folders[0]:
-        if f["id"] == id:
-            f["metadata"]["name"] = updateinfo["name"]
-            f["metadata"]["path"] = updateinfo["path"]
-            f["metadata"]["lastEdited"] = get_current_isodate()
-            
-            return Response(status_code=204)
-
-    for n in notes[0]:
-        if n["id"] == id:
-            n["metadata"]["name"] = updateinfo["name"]
-            n["metadata"]["path"] = updateinfo["path"]
-            n["metadata"]["lastEdited"] = get_current_isodate()
-            
-            return Response(status_code=204)
+    db.update_metadata_by_id(request, id, updateinfo["name"], updateinfo["path"])
             
     return Response(status_code=204)
     
@@ -138,59 +107,44 @@ async def update_blocks(request: Request, id: str):
     try: newblockinfo = await request.json()
     except json.decoder.JSONDecodeError: return Response(status_code=400)
     
-    if not is_authenticated(request): return Response(status_code=401)
+    if not db.is_authenticated(request): return Response(status_code=401)
 
-    for n in notes[0]:
-        if n["id"] == id:
-            n["blocks"] = newblockinfo
-            n["metadata"]["lastEdited"] = get_current_isodate()
-            return Response(status_code=204)
+    db.update_blocks_by_id(request, id, json.dumps(newblockinfo))
+    
     return Response(status_code=204)
     
-    
-    
+
 @app.post("/items/list")
 async def list_notes(request: Request):
-    ret_notes = []
-    if not is_authenticated(request): return Response(status_code=401)
+    ret = []
+    if not db.is_authenticated(request): return Response(status_code=401)
     
     try: path = await request.json()
     except json.decoder.JSONDecodeError: return Response(status_code=400)
     
-    if not does_path_exist(path): return Response(status_code=400)
+    if not db.does_path_exist(request, path): return Response(status_code=400)
             
-    
-                       # WE ARE ASSUMING THE FIRST ELEMENT IS THE CORRECT USERS NOTE LIST
-    for n in notes[0]: # UNTIL THERE IS A GetNotes(folderId, userId) db function                  
-        if str(n["metadata"]["path"]) == str(path): ret_notes.append(n)
+    curr_users_notes = db.get_users_notes(request)
+    for n in curr_users_notes:               
+        if str(n["metadata"]["path"]) == str(path): ret.append(n)
             
-    return JSONResponse(status_code=200, content=ret_notes)    
+    return JSONResponse(status_code=200, content=ret)    
             
-@app.get("/items/{id}")
-async def get_item(request: Request, id: UUID):
-    if not is_authenticated(request): return Response(status_code=401)
-
-    for f in folders[0]:
-        if f['id'] == str(id):
-            return JSONResponse(f, status_code=200)
-
-    for n in notes[0]:
-        if n['id'] == str(id):
-            return JSONResponse(n, status_code=200)
-    
-    return Response(status_code=404)
 
 class AuthData(BaseModel):
     email: str
     password: str
 
 @app.post("/authenticate")
-async def authenticate(data: AuthData):
-    for u in users:
+async def authenticate(request: Request, data: AuthData):
+    pusers = db.get_users_by_email(data.email)
+
+    for u in pusers:
         if u["email"] == data.email and u["pass"] == hash_password(data.password):
-            u["lastSignedIn"] = get_current_isodate()
+            u["lastSignedIn"] = get_current_isodate() # UPDATE IN DB
             response = JSONResponse(status_code=200, content={"authenticated": True})
             response.set_cookie(key="authenticate", value=str(u["id"]), path="/")
+            db.update_lastsignedin(request)
             return response
             
     return {"authenticated": False}
@@ -198,12 +152,10 @@ async def authenticate(data: AuthData):
 
 @app.get("/")
 async def root(request: Request):
-    if not is_authenticated(request):
+    if not db.is_authenticated(request):
         return JSONResponse(status_code=200, content={"apiVersion": API_VERSION, "user":0})
-    for u in users:
-        if u["id"] == request.cookies.get("authenticate"):
-            return JSONResponse(status_code=200, content=u) # add API version to response content
+        
+    udata = db.get_user_data_by_id(request.cookies.get("authenticate"))
+    return JSONResponse(status_code=200, content=udata) # add API version to response content
 
 
-if __name__ == "__main__":
-   uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
