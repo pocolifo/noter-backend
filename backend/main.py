@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from starlette.requests import Request
 from starlette.responses import Response
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from makeobjects import make_note, make_folder
@@ -10,6 +11,8 @@ from utils import get_current_isodate, hash_password
 from noterdb import DB
 
 app = FastAPI()
+app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], allow_headers=['*'], allow_credentials=True)
+
 API_VERSION = 1
 
 DB_NAME = ""
