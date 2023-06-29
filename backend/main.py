@@ -6,30 +6,18 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from makeobjects import make_note, make_folder
-from utils import get_current_isodate, hash_password
+from makeobjects import *
+from utils import *
+from globals import *
 from noterdb import DB
 
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], allow_headers=['*'], allow_credentials=True)
 
-API_VERSION = 1
-
-DB_NAME = ""
-DB_USER = ""
-DB_PASS = ""
-DB_HOST = ""
-DB_PORT = ""
-
-db = DB(DB_NAME, DB_USER, DB_PASS, DB_HOST, DB_PORT)
-try: db.connect()
-except:
-    print("COULD NOT CONNECT TO DATABASE!")
-    exit(0)
-
-
 if __name__ == "__main__":
-   uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    db = DB(CONN_LINK())
+    db.connect()
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
    
    
 @app.get("/items/{id}")
@@ -100,6 +88,8 @@ async def update_metadata(request: Request, id: str):
     if not db.is_authenticated(request): return JSONResponse(status_code=401, content={})
     if not db.does_path_exist(request, updateinfo["path"]): return Response(status_code=400)
     
+    print(updateinfo["name"])
+    print(updateinfo["path"])
     db.update_metadata_by_id(request, id, updateinfo["name"], updateinfo["path"])
             
     return Response(status_code=204)
@@ -156,7 +146,7 @@ async def authenticate(request: Request, data: AuthData):
 @app.get("/")
 async def root(request: Request):
     if not db.is_authenticated(request):
-        return JSONResponse(status_code=200, content={"apiVersion": API_VERSION, "user":0})
+        return JSONResponse(status_code=200, content={"apiVersion": API_VERSION(), "user":0})
         
     udata = db.get_user_data_by_id(request.cookies.get("authenticate"))
     return JSONResponse(status_code=200, content=udata) # add API version to response content

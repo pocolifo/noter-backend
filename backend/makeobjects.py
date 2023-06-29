@@ -1,20 +1,13 @@
 from uuid import uuid4
 from datetime import datetime
 from starlette.requests import Request
-from noterdb import DB
 from json import dumps as jsondumps
 
-DB_NAME = ""
-DB_USER = ""
-DB_PASS = ""
-DB_HOST = ""
-DB_PORT = ""
+from noterdb import DB
+from globals import *
 
-db = DB(DB_NAME, DB_USER, DB_PASS, DB_HOST, DB_PORT)
-try: db.connect()
-except:
-    print("COULD NOT CONNECT TO DATABASE!")
-    exit(0)
+db = DB(CONN_LINK())
+db.connect()
 
 def make_note(request: Request, name: str, path: list, studyguide: bool): # update more info as db is created
     type_ = "studyguide" if studyguide else "note"
@@ -66,8 +59,5 @@ def make_folder(request: Request, name: str, path: list): # update more info as 
 '''.format(str(uuid4()), name, jsondumps(path), datetime.now().isoformat(),
             db.get_user_data_by_id(str(request.cookies.get("authenticate"))))
     return new_folder
-
-
-
 
 
