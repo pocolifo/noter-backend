@@ -1,4 +1,4 @@
-import psycopg2, json
+import json
 
 from sqlalchemy import text, Column, Integer, String, JSON
 from sqlalchemy.ext.declarative import declarative_base
