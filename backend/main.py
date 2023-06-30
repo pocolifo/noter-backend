@@ -41,8 +41,8 @@ async def create_note(request: Request):
     if not db.is_authenticated(request): return Response(status_code=401)
     if not db.does_path_exist(request, noteinfo["path"]): return Response(status_code=400)
     
-    note = make_note(request, noteinfo["name"], noteinfo["path"], False)
-    
+    #note = make_note(request, noteinfo["name"], noteinfo["path"], False)
+    note = {} # UPDATE MAKE_NOTE
     db.insert_note(note)
     return JSONResponse(status_code=201, content=json.loads(note))
 
@@ -55,8 +55,8 @@ async def create_studyguide(request: Request):
     if not db.is_authenticated(request): return Response(status_code=401)
     if not db.does_path_exist(request, noteinfo["path"]): return Response(status_code=400)
     
-    note = make_note(request, noteinfo["name"], noteinfo["path"], True)
-    
+    #note = make_note(request, noteinfo["name"], noteinfo["path"], True)
+    note = {} # UPDATE MAKE_NOTE
     db.insert_note(note)
     return JSONResponse(status_code=201, content=json.loads(note))
 
@@ -69,8 +69,8 @@ async def create_folder(request: Request):
     if not db.is_authenticated(request): return Response(status_code=401)
     if not db.does_path_exist(request, folderinfo["path"]): return Response(status_code=400)
     
-    folder = make_folder(request, folderinfo["name"], folderinfo["path"])
-    
+    #folder = make_folder(request, folderinfo["name"], folderinfo["path"])
+    folder = {} # UPDATE MAKE_FOLDER
     db.insert_folder(folder)
     return JSONResponse(status_code=201, content=json.loads(folder))
 
