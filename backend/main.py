@@ -14,7 +14,11 @@ from noterdb import DB
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], allow_headers=['*'], allow_credentials=True)
 
-if __name__ == "__main__":
+db = None
+
+@app.on_event("startup")
+async def start():
+    global db
     db = DB(CONN_LINK())
     db.connect()
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
