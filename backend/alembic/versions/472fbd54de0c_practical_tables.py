@@ -18,10 +18,14 @@ depends_on = None
 
 
 def upgrade() -> None:
+    op.drop_table('users')
+    op.drop_table('notes')
+    op.drop_table('folders')
+
     op.create_table(
         'users',
         sa.Column('primary_id', sa.Integer, primary_key=True),
-        sa.Column('id', sa.String),
+        sa.Column('id', sa.String, unique=True),
         sa.Column('email', sa.String),
         sa.Column('password', sa.String),
         sa.Column('stripe_id', sa.String),
