@@ -37,7 +37,7 @@ def upgrade() -> None:
     op.create_table(
         'notes',
         sa.Column('primary_id', sa.Integer, primary_key=True),
-        sa.Column('id', sa.String),
+        sa.Column('id', sa.String, unique=True),
         sa.Column('type', sa.String),
         sa.Column('name', sa.String),
         sa.Column('path', sa.ARRAY(sa.String)),
@@ -50,7 +50,7 @@ def upgrade() -> None:
     op.create_table(
         'folders',
         sa.Column('primary_id', sa.Integer, primary_key=True),
-        sa.Column('id', sa.String),
+        sa.Column('id', sa.String, unique=True),
         sa.Column('type', sa.String),
         sa.Column('name', sa.String),
         sa.Column('path', sa.ARRAY(sa.String)),

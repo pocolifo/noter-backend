@@ -11,19 +11,17 @@ from utils import *
 from globals import *
 from noterdb import DB
 
-app = FastAPI()
-app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], allow_headers=['*'], allow_credentials=True)
-
 db = None
-
-@app.on_event("startup")
-async def start():
+def app_init():
     global db
     db = DB(CONN_LINK())
     db.connect()
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
-   
-   
+    return FastAPI()
+
+app = app_init()
+app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], allow_headers=['*'], allow_credentials=True)
+
+
 @app.get("/items/{id}")
 async def get_item(request: Request, id: str):
     if not db.is_authenticated(request): return Response(status_code=401)
@@ -41,10 +39,9 @@ async def create_note(request: Request):
     if not db.is_authenticated(request): return Response(status_code=401)
     if not db.does_path_exist(request, noteinfo["path"]): return Response(status_code=400)
     
-    #note = make_note(request, noteinfo["name"], noteinfo["path"], False)
-    note = {} # UPDATE MAKE_NOTE
+    note = make_note(request, noteinfo["name"], noteinfo["path"], False)
     db.insert_note(note)
-    return JSONResponse(status_code=201, content=json.loads(note))
+    return JSONResponse(status_code=201, content=note)
 
 
 @app.post("/items/create/studyguide")
@@ -55,10 +52,9 @@ async def create_studyguide(request: Request):
     if not db.is_authenticated(request): return Response(status_code=401)
     if not db.does_path_exist(request, noteinfo["path"]): return Response(status_code=400)
     
-    #note = make_note(request, noteinfo["name"], noteinfo["path"], True)
-    note = {} # UPDATE MAKE_NOTE
+    note = make_note(request, noteinfo["name"], noteinfo["path"], True)
     db.insert_note(note)
-    return JSONResponse(status_code=201, content=json.loads(note))
+    return JSONResponse(status_code=201, content=note)
 
 
 @app.post("/items/create/folder") 
@@ -69,10 +65,9 @@ async def create_folder(request: Request):
     if not db.is_authenticated(request): return Response(status_code=401)
     if not db.does_path_exist(request, folderinfo["path"]): return Response(status_code=400)
     
-    #folder = make_folder(request, folderinfo["name"], folderinfo["path"])
-    folder = {} # UPDATE MAKE_FOLDER
+    folder = make_folder(request, folderinfo["name"], folderinfo["path"])
     db.insert_folder(folder)
-    return JSONResponse(status_code=201, content=json.loads(folder))
+    return JSONResponse(status_code=201, content=folder)
 
 @app.delete("/items/delete")
 async def delete_item(request: Request, id: str):
@@ -135,9 +130,8 @@ class AuthData(BaseModel):
 @app.post("/authenticate")
 async def authenticate(request: Request, data: AuthData):
     pusers = db.get_users_by_email(data.email)
-
     for u in pusers:
-        if u["email"] == data.email and u["pass"] == hash_password(data.password):
+        if u["email"] == data.email and u["password"] == hash_password(data.password):
             u["lastSignedIn"] = get_current_isodate() # UPDATE IN DB
             response = JSONResponse(status_code=200, content={"authenticated": True})
             response.set_cookie(key="authenticate", value=str(u["id"]), path="/")

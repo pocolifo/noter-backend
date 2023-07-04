@@ -3,61 +3,35 @@ from datetime import datetime
 from starlette.requests import Request
 from json import dumps as jsondumps
 
-from noterdb import DB
+from noterdb import *
 from globals import *
 
 db = DB(CONN_LINK())
 db.connect()
 
-def make_note(request: Request, name: str, path: list, studyguide: bool): # update more info as db is created
+def make_note(request: Request, name: str, path: list, studyguide: bool):
     type_ = "studyguide" if studyguide else "note"
-    newnote = '''
-{{
-    "id": "{0}",
-    "type": "{1}",
-    "metadata": {{
-        "name": "{2}",
-        "path": {3},
-        "lastEdited": "",
-        "createdOn": "{4}",
-        "owner": {5}
-            
-    }},
-    "blocks": [
-        {{
-            "type": "text",
-            "data": {{
-                "content": "<serialized data>"
-            }}
-        }},
-        {{
-            "type": "image",
-            "data": {{
-                "url": "<serialized URL data>"
-            }}
-        }}
-    ]
-}}
-'''.format(str(uuid4()), type_, name, jsondumps(path), datetime.now().isoformat(),
-            db.get_user_data_by_id(str(request.cookies.get("authenticate"))))
-    return newnote
+    return {
+        "id":str(uuid4()),
+        "type":type_,
+        "name":name,
+        "path":path,
+        "lastEdited":"",
+        "createdOn":str(datetime.now().isoformat()),
+        "owner":str(request.cookies.get("authenticate")),
+        "blocks":""
+    }
 
-def make_folder(request: Request, name: str, path: list): # update more info as db is created
-    new_folder = '''
-{{
-    "id": "{0}",
-    "type": "folder",
-    "metadata": {{
-        "name": "{1}",
-        "path": {2},
-        "lastEdited": "",
-        "createdOn": "{3}",
-        "owner": {4}
-            
-    }}
-}}
-'''.format(str(uuid4()), name, jsondumps(path), datetime.now().isoformat(),
-            db.get_user_data_by_id(str(request.cookies.get("authenticate"))))
-    return new_folder
+def make_folder(request: Request, name: str, path: list):
+    return {
+        "id":str(uuid4()),
+        "type":"folder",
+        "name":name,
+        "path":path,
+        "lastEdited":"",
+        "createdOn":str(datetime.now().isoformat()),
+        "owner":str(request.cookies.get("authenticate"))
+    }
+    
 
 

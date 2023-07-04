@@ -15,7 +15,7 @@ class User(Base):
     __tablename__ = 'users'
 
     primary_id = Column(Integer, primary_key=True)
-    id = Column(String)
+    id = Column(String, unique=True)
     email = Column(String)
     password = Column(String)
     stripe_id = Column(String)
@@ -27,30 +27,30 @@ class Note(Base):
     __tablename__ = 'notes'
 
     primary_id = Column(Integer, primary_key=True)
-    id = Column(String)
+    id = Column(String, unique=True)
     type = Column(String)
     name = Column(String)
     path = Column(ARRAY(String))
     lastEdited = Column(String)
     createdOn = Column(String)
-    owner_id = Column(String, ForeignKey('owner.id'))
+    owner_id = Column(String, ForeignKey('users.id'))
     blocks = Column(JSON)
 
-    owner = relationship("Owner")
+    owner = relationship("User")
 
 class Folder(Base):
     __tablename__ = 'folders'
     
     primary_id = Column(Integer, primary_key=True)
-    id = Column(String)
+    id = Column(String, unique=True)
     type = Column(String)
     name = Column(String)
     path = Column(ARRAY(String))
     lastEdited = Column(String)
     createdOn = Column(String)
-    owner_id = Column(String, ForeignKey('owner.id'))
+    owner_id = Column(String, ForeignKey('users.id'))
 
-    owner = relationship("Owner")
+    owner = relationship("User")
 
 
 class DB:
