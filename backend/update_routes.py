@@ -34,3 +34,14 @@ async def update_blocks(request: Request, id: str):
     db.update_blocks_by_id(request, id, json.dumps(newblockinfo))
     
     return Response(status_code=204)
+    
+    
+@router.post("/items/update/notedata")
+async def set_notedata(request: Request, id:str):
+    try: newblockinfo = await request.json()
+    except json.decoder.JSONDecodeError: return Response(status_code=400)
+    
+    db.set_notedata_by_id(newblockinfo["data"], id)
+    
+    
+    return Response(status_code=204)

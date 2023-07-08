@@ -28,10 +28,16 @@ async def list_notes(request: Request):
     try: path = await request.json()
     except json.decoder.JSONDecodeError: return Response(status_code=400)
     
-    if not db.does_path_exist(request, path): return Response(status_code=400)
+    if not db.folder_manager.does_path_exist(request, path): return Response(status_code=400)
             
     curr_users_notes = db.get_users_notes(request)
     for n in curr_users_notes:               
         if str(n["path"]) == str(path): ret.append(n)
             
     return JSONResponse(status_code=200, content=ret)
+    
+    
+@router.post("/items/notedata")
+async def get_notedata(id:str):
+    notedata = db.get_notedata(id)
+    return JSONResponse(status_code=200, content=notedata)
