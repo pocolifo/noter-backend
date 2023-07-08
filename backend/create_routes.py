@@ -43,10 +43,10 @@ async def create_studyguide(request: Request):
     except json.decoder.JSONDecodeError: return Response(status_code=400)
     
     if not db.is_authenticated(request): return Response(status_code=401)
-    if not db.does_path_exist(request, noteinfo["path"]): return Response(status_code=400)
+    if not db.folder_manager.does_path_exist(request, noteinfo["path"]): return Response(status_code=400)
     
     note = make_note(request, noteinfo["name"], noteinfo["path"], True)
-    db.insert_note(note)
+    db.note_manager.insert_note(note)
     return JSONResponse(status_code=201, content=note)
 
 
@@ -56,8 +56,8 @@ async def create_folder(request: Request):
     except json.decoder.JSONDecodeError: return Response(status_code=400)
     
     if not db.is_authenticated(request): return Response(status_code=401)
-    if not db.does_path_exist(request, folderinfo["path"]): return Response(status_code=400)
+    if not db.folder_manager.does_path_exist(request, folderinfo["path"]): return Response(status_code=400)
     
     folder = make_folder(request, folderinfo["name"], folderinfo["path"])
-    db.insert_folder(folder)
+    db.folder_manager.insert_folder(folder)
     return JSONResponse(status_code=201, content=folder)

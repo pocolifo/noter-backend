@@ -263,27 +263,6 @@ class DB:
             folder.lastEdited = datetime.now().isoformat()
 
         self.session.commit()
-
-        
-    def set_notedata_by_id(self, notedata, id_):
-        notes = self.session.query(NoteData).filter(NoteData.id == id_).all()
-        if len(notes) != 0:
-            for n in notes:
-                n.data = notedata
-            self.session.commit()    
-    
-        notedata_obj = NoteData(
-            id=id_,
-            data=notedata
-        )
-        self.session.add(notedata_obj)
-        
-        self.session.commit()
-        
-        
-    def get_notedata(self, id):
-        notes = self.session.query(NoteData).filter(NoteData.id == id).all()
-        return [{"data":note.data} for note in notes]
         
     
         

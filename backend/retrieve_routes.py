@@ -36,8 +36,3 @@ async def list_notes(request: Request):
             
     return JSONResponse(status_code=200, content=ret)
     
-    
-@router.post("/items/notedata")
-async def get_notedata(id:str):
-    notedata = db.get_notedata(id)
-    return JSONResponse(status_code=200, content=notedata)
