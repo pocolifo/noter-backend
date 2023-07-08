@@ -6,10 +6,14 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from makeobjects import *
+from make_objects import *
 from utils import *
 from globals import *
 from noterdb import DB
+
+import retrieve_routes as rr
+import update_routes as ur
+import create_routes as cr
 
 db = None
 def app_init():
@@ -21,53 +25,10 @@ def app_init():
 app = app_init()
 app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], allow_headers=['*'], allow_credentials=True)
 
+app.include_router(rr.router)
+app.include_router(ur.router)
+app.include_router(cr.router)
 
-@app.get("/items/{id}")
-async def get_item(request: Request, id: str):
-    if not db.is_authenticated(request): return Response(status_code=401)
-
-    item = db.get_item(request, id)
-    if not item: return Response(status_code=404)
-    return JSONResponse(json.loads(item), status_code=200)
-
-    
-@app.post("/items/create/note")
-async def create_note(request: Request):
-    try: noteinfo = await request.json()
-    except json.decoder.JSONDecodeError: return Response(status_code=400)
-    
-    if not db.is_authenticated(request): return Response(status_code=401)
-    if not db.does_path_exist(request, noteinfo["path"]): return Response(status_code=400)
-    
-    note = make_note(request, noteinfo["name"], noteinfo["path"], False)
-    db.insert_note(note)
-    return JSONResponse(status_code=201, content=note)
-
-
-@app.post("/items/create/studyguide")
-async def create_studyguide(request: Request):
-    try: noteinfo = await request.json()
-    except json.decoder.JSONDecodeError: return Response(status_code=400)
-    
-    if not db.is_authenticated(request): return Response(status_code=401)
-    if not db.does_path_exist(request, noteinfo["path"]): return Response(status_code=400)
-    
-    note = make_note(request, noteinfo["name"], noteinfo["path"], True)
-    db.insert_note(note)
-    return JSONResponse(status_code=201, content=note)
-
-
-@app.post("/items/create/folder") 
-async def create_folder(request: Request):
-    try: folderinfo = await request.json()
-    except json.decoder.JSONDecodeError: return Response(status_code=400)
-    
-    if not db.is_authenticated(request): return Response(status_code=401)
-    if not db.does_path_exist(request, folderinfo["path"]): return Response(status_code=400)
-    
-    folder = make_folder(request, folderinfo["name"], folderinfo["path"])
-    db.insert_folder(folder)
-    return JSONResponse(status_code=201, content=folder)
 
 @app.delete("/items/delete")
 async def delete_item(request: Request, id: str):
@@ -79,50 +40,6 @@ async def delete_item(request: Request, id: str):
     #return Response(status_code=400)
 
 
-@app.post("/items/update/metadata")
-async def update_metadata(request: Request, id: str):
-    try: updateinfo = await request.json()
-    except json.decoder.JSONDecodeError: return Response(status_code=400)
-    
-    if not db.is_authenticated(request): return JSONResponse(status_code=401, content={})
-    if not db.does_path_exist(request, updateinfo["path"]): return Response(status_code=400)
-    
-    print(updateinfo["name"])
-    print(updateinfo["path"])
-    db.update_metadata_by_id(request, id, updateinfo["name"], updateinfo["path"])
-            
-    return Response(status_code=204)
-    
-    
-@app.put("/items/update/blocks")
-async def update_blocks(request: Request, id: str):
-    try: newblockinfo = await request.json()
-    except json.decoder.JSONDecodeError: return Response(status_code=400)
-    
-    if not db.is_authenticated(request): return Response(status_code=401)
-
-    db.update_blocks_by_id(request, id, json.dumps(newblockinfo))
-    
-    return Response(status_code=204)
-    
-
-@app.post("/items/list")
-async def list_notes(request: Request):
-    ret = []
-    if not db.is_authenticated(request): return Response(status_code=401)
-    
-    try: path = await request.json()
-    except json.decoder.JSONDecodeError: return Response(status_code=400)
-    
-    if not db.does_path_exist(request, path): return Response(status_code=400)
-            
-    curr_users_notes = db.get_users_notes(request)
-    for n in curr_users_notes:               
-        if str(n["metadata"]["path"]) == str(path): ret.append(n)
-            
-    return JSONResponse(status_code=200, content=ret)    
-            
-
 class AuthData(BaseModel):
     email: str
     password: str
@@ -131,7 +48,8 @@ class AuthData(BaseModel):
 async def authenticate(request: Request, data: AuthData):
     pusers = db.get_users_by_email(data.email)
     for u in pusers:
-        if u["email"] == data.email and u["password"] == hash_password(data.password):
+        print(u["password"])
+        if u["email"] == data.email and verify_hash(u["password"], data.password):
             u["lastSignedIn"] = get_current_isodate() # UPDATE IN DB
             response = JSONResponse(status_code=200, content={"authenticated": True})
             response.set_cookie(key="authenticate", value=str(u["id"]), path="/")

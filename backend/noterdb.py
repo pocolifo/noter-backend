@@ -22,6 +22,7 @@ class User(Base):
     lastSignedIn = Column(String)
     joinedOn = Column(String)
     history = Column(JSON)
+    notes = relationship("Note", back_populates="owner")
 
 class Note(Base):
     __tablename__ = 'notes'
@@ -36,7 +37,7 @@ class Note(Base):
     owner_id = Column(String, ForeignKey('users.id'))
     blocks = Column(JSON)
 
-    owner = relationship("User")
+    owner = relationship("User", back_populates="notes")
 
 class Folder(Base):
     __tablename__ = 'folders'
@@ -139,6 +140,20 @@ class DB:
             
         return False
 
+    def insert_user(self, user: dict):
+        user_obj = User(
+            id=user.get('id'),
+            email=user.get('email'),
+            password=user.get('password'),
+            stripe_id=user.get('stripe_id'),
+            lastSignedIn=user.get('lastSignedIn'),
+            joinedOn=user.get('joinedOn'),
+            
+            history=user.get('history')
+        )
+        self.session.add(user_obj)
+        self.session.commit()
+
 
     def insert_note(self, note: dict):
         note_obj = Note(
@@ -228,6 +243,8 @@ class DB:
     def get_users_by_email(self, email: str):
         users = self.session.query(User).filter(User.email == email).all()
         return [{"id": user.id, "email": user.email, "password": user.password, "stripe_id": user.stripe_id, "lastSignedIn": user.lastSignedIn, "joinedOn": user.joinedOn, "history": user.history} for user in users]
-
+        
+        
+    
         
         
