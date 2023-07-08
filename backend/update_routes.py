@@ -18,8 +18,8 @@ async def update_metadata(request: Request, id: str):
     
     if not db.is_authenticated(request): return JSONResponse(status_code=401, content={})
     if not db.folder_manager.does_path_exist(request, updateinfo["path"]): return Response(status_code=400)
-    
-    db.update_metadata_by_id(request, id, updateinfo["name"], updateinfo["path"])
+
+    db.update_metadata_by_id(request, id, str(updateinfo["name"]), updateinfo["path"])
             
     return Response(status_code=204)
     

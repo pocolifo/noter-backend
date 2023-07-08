@@ -48,7 +48,6 @@ class AuthData(BaseModel):
 async def authenticate(request: Request, data: AuthData):
     pusers = db.user_manager.get_users_by_email(data.email)
     for u in pusers:
-        print(u["password"])
         if u["email"] == data.email and verify_hash(u["password"], data.password):
             u["lastSignedIn"] = get_current_isodate() # UPDATE IN DB
             response = JSONResponse(status_code=200, content={"authenticated": True})

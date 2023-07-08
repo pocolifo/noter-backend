@@ -144,6 +144,7 @@ class NoteManager(BaseManager):
 
 class FolderManager(BaseManager):
     def does_path_exist(self, request: Request, fullpath: list):
+        print(fullpath)
         if len(fullpath) == 0: 
             return True
 
@@ -246,7 +247,7 @@ class DB:
         self.session.commit()
 
 
-    def update_metadata_by_id(self, request: Request, id: str, new_name: str, new_path: str):
+    def update_metadata_by_id(self, request: Request, id: str, new_name: str, new_path: list):
         user_id = str(request.cookies.get("authenticate"))
       
         notes = self.session.query(Note).filter(Note.id == id, Note.owner_id == user_id).all()
@@ -254,7 +255,7 @@ class DB:
 
         for note in notes:
             note.name = new_name
-            note.path = json.loads(new_path)
+            note.path = new_path
             note.lastEdited = datetime.now().isoformat()
 
         for folder in folders:

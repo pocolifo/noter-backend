@@ -30,7 +30,7 @@ async def list_notes(request: Request):
     
     if not db.folder_manager.does_path_exist(request, path): return Response(status_code=400)
             
-    curr_users_notes = db.get_users_notes(request)
+    curr_users_notes = db.note_manager.get_users_notes(request)
     for n in curr_users_notes:               
         if str(n["path"]) == str(path): ret.append(n)
             
