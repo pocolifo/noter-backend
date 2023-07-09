@@ -39,12 +39,6 @@ class Note(Base):
 
     owner = relationship("User", back_populates="notes")
 
-class NoteData(Base):
-    __tablename__ = 'notedata'
-
-    primary_id = Column(Integer, primary_key=True)
-    id = Column(String, unique=True)
-    data = Column(String)
 
 class Folder(Base):
     __tablename__ = 'folders'
