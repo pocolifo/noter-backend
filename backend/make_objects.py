@@ -5,6 +5,7 @@ from json import dumps as jsondumps
 
 from noterdb import *
 from globals import *
+from utils import *
 
 db = DB(CONN_LINK())
 db.connect()
@@ -30,8 +31,8 @@ def make_note(request: Request, name: str, path: list, studyguide: bool):
         "path":path,
         "lastEdited":"",
         "createdOn":str(datetime.now().isoformat()),
-        "owner":str(request.cookies.get("authenticate")),
-        "blocks":""
+        "owner":from_jwt(str(request.cookies.get("authenticate"))),
+        "blocks":[]
     }
 
 def make_folder(request: Request, name: str, path: list):
@@ -42,7 +43,7 @@ def make_folder(request: Request, name: str, path: list):
         "path":path,
         "lastEdited":"",
         "createdOn":str(datetime.now().isoformat()),
-        "owner":str(request.cookies.get("authenticate"))
+        "owner":from_jwt(str(request.cookies.get("authenticate")))
     }
     
 

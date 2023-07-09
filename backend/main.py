@@ -49,10 +49,10 @@ async def authenticate(request: Request, data: AuthData):
     pusers = db.user_manager.get_users_by_email(data.email)
     for u in pusers:
         if u["email"] == data.email and verify_hash(u["password"], data.password):
-            u["lastSignedIn"] = get_current_isodate() # UPDATE IN DB
             response = JSONResponse(status_code=200, content={"authenticated": True})
-            response.set_cookie(key="authenticate", value=str(u["id"]), path="/")
-            db.user_manager.update_lastsignedin(request)
+            
+            response.set_cookie(key="authenticate", value=to_jwt(str(u["id"])), path="/")
+            db.user_manager.update_lastsignedin(str(u["id"]))
             return response
             
     return {"authenticated": False}
@@ -63,7 +63,7 @@ async def root(request: Request):
     if not db.is_authenticated(request):
         return JSONResponse(status_code=200, content={"apiVersion": API_VERSION(), "user":0})
         
-    udata = db.user_manager.get_user_data_by_id(request.cookies.get("authenticate"))
+    udata = db.user_manager.get_user_data_by_id(from_jwt(str(request.cookies.get("authenticate"))))
     return JSONResponse(status_code=200, content=udata) # add API version to response content
 
 

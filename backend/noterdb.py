@@ -8,6 +8,7 @@ from sqlalchemy.orm.attributes import flag_modified
 
 from datetime import datetime
 from starlette.requests import Request
+from utils import *
 
 Base = declarative_base()
 
@@ -94,9 +95,7 @@ class UserManager(BaseManager):
         users = self.session.query(User).filter(User.email == email).all()
         return [{"id": user.id, "email": user.email, "password": user.password, "stripe_id": user.stripe_id, "lastSignedIn": user.lastSignedIn, "joinedOn": user.joinedOn, "history": user.history} for user in users]
 
-    def update_lastsignedin(self, request: Request):
-        user_id = str(request.cookies.get("authenticate"))
-
+    def update_lastsignedin(self, user_id:str):
         users = self.session.query(User).filter(User.id == user_id).all()
 
         for user in users:
@@ -120,7 +119,7 @@ class NoteManager(BaseManager):
         self.session.commit()
 
     def update_blocks_by_id(self, request: Request, id: str, new_blocks: str):
-        user_id = str(request.cookies.get("authenticate"))
+        user_id = from_jwt(str(request.cookies.get("authenticate")))
 
         notes = self.session.query(Note).filter(Note.id == id, Note.owner_id == user_id).all()
 
@@ -131,18 +130,17 @@ class NoteManager(BaseManager):
         self.session.commit()
 
     def get_users_notes(self, request: Request):
-        user_id = str(request.cookies.get("authenticate"))
+        user_id = from_jwt(str(request.cookies.get("authenticate")))
         notes = self.session.query(Note).filter(Note.owner_id == user_id).all()
         return [{"id": note.id, "type": note.type, "name": note.name, "path": note.path, "lastEdited": note.lastEdited, "createdOn": note.createdOn, "blocks": note.blocks} for note in notes]
 
 
 class FolderManager(BaseManager):
     def does_path_exist(self, request: Request, fullpath: list):
-        print(fullpath)
         if len(fullpath) == 0: 
             return True
 
-        user_id = str(request.cookies.get("authenticate"))
+        user_id = from_jwt(str(request.cookies.get("authenticate")))
         folders = self.session.query(Folder).filter(Folder.owner_id == user_id).all()
 
         for folder in folders:
@@ -194,13 +192,13 @@ class DB:
 
         
     def is_authenticated(self, request: Request) -> bool:
-        user_id = str(request.cookies.get("authenticate"))
+        user_id = from_jwt(str(request.cookies.get("authenticate")))
         user = self.session.query(User).filter(User.id == user_id).first()
         return user is not None
 
 
     def get_item(self, request: Request, id: str):
-        user_id = str(request.cookies.get("authenticate"))
+        user_id = from_jwt(str(request.cookies.get("authenticate")))
 
         note = self.session.query(Note).filter(Note.id == id, Note.owner_id == user_id).first()
 
@@ -233,7 +231,7 @@ class DB:
 
 
     def delete_item_by_id(self, request: Request, id: str):
-        user_id = str(request.cookies.get("authenticate"))
+        user_id = from_jwt(str(request.cookies.get("authenticate")))
 
         self.session.query(Note).filter(Note.id == id, Note.owner_id == user_id).delete()
         self.session.query(Folder).filter(Folder.id == id, Folder.owner_id == user_id).delete()
@@ -242,7 +240,7 @@ class DB:
 
 
     def update_metadata_by_id(self, request: Request, id: str, new_name: str, new_path: list):
-        user_id = str(request.cookies.get("authenticate"))
+        user_id = from_jwt(str(request.cookies.get("authenticate")))
       
         notes = self.session.query(Note).filter(Note.id == id, Note.owner_id == user_id).all()
         folders = self.session.query(Folder).filter(Folder.id == id, Folder.owner_id == user_id).all()
