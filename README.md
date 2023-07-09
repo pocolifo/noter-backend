@@ -1,5 +1,5 @@
 # Setup
-### Once you've setup an empty PostgreSQL database and it's running on your localhost:
+### Once you've setup an empty PostgreSQL database:
 
 
 1. Open `backend/alembic.ini` and assign the `sqlalchemy.url` variable (line 63) to your database connection URL. Your connection URL will be in the following format: `postgresql://DB_USER:DB_PASS@DB_HOST/DB_NAME`
