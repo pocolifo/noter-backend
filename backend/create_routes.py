@@ -13,7 +13,6 @@ db.connect()
 
 router = APIRouter()
 
-
 @router.post("/items/create/user")
 async def create_user(request: Request):
     try: userinfo = await request.json()
@@ -28,8 +27,7 @@ async def create_user(request: Request):
 async def create_note(request: Request):
     try: noteinfo = await request.json()
     except json.decoder.JSONDecodeError: return Response(status_code=400)
-    
-    if not db.is_authenticated(request): return Response(status_code=401)
+
     if not db.folder_manager.does_path_exist(request, noteinfo["path"]): return Response(status_code=400)
     
     note = make_note(request, noteinfo["name"], noteinfo["path"], False)
@@ -42,7 +40,6 @@ async def create_studyguide(request: Request):
     try: noteinfo = await request.json()
     except json.decoder.JSONDecodeError: return Response(status_code=400)
     
-    if not db.is_authenticated(request): return Response(status_code=401)
     if not db.folder_manager.does_path_exist(request, noteinfo["path"]): return Response(status_code=400)
     
     note = make_note(request, noteinfo["name"], noteinfo["path"], True)
@@ -55,7 +52,6 @@ async def create_folder(request: Request):
     try: folderinfo = await request.json()
     except json.decoder.JSONDecodeError: return Response(status_code=400)
     
-    if not db.is_authenticated(request): return Response(status_code=401)
     if not db.folder_manager.does_path_exist(request, folderinfo["path"]): return Response(status_code=400)
     
     folder = make_folder(request, folderinfo["name"], folderinfo["path"])

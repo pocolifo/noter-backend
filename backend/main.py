@@ -10,6 +10,7 @@ from make_objects import *
 from utils import *
 from globals import *
 from noterdb import DB
+from middleware import route_middleware
 
 import retrieve_routes as rr
 import update_routes as ur
@@ -24,6 +25,7 @@ def app_init():
 
 app = app_init()
 app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], allow_headers=['*'], allow_credentials=True)
+app.middleware("http")(route_middleware)
 
 app.include_router(rr.router)
 app.include_router(ur.router)

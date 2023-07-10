@@ -13,8 +13,6 @@ router = APIRouter()
 
 @router.get("/items/{id}")
 async def get_item(request: Request, id: str):
-    if not db.is_authenticated(request): return Response(status_code=401)
-
     item = db.get_item(request, id)
     if not item: return Response(status_code=404)
     return JSONResponse(json.loads(item), status_code=200)
@@ -23,7 +21,6 @@ async def get_item(request: Request, id: str):
 @router.post("/items/list")
 async def list_notes(request: Request):
     ret = []
-    if not db.is_authenticated(request): return Response(status_code=401)
     
     try: path = await request.json()
     except json.decoder.JSONDecodeError: return Response(status_code=400)

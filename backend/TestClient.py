@@ -6,7 +6,7 @@ r = s.post("http://localhost:8000/authenticate", json={"email":"myemail2@gmail.c
 print(r.status_code)
 print(r.text)
 
-r = s.get("http://localhost:8000/items/f4a0c620-dc41-418a-aac9-6bf7b1e5b5ee")
+r = s.post("http://localhost:8000/items/create/note", json={"name":"69329", "path":[]})
 print(r.status_code)
 print(r.text)
 
