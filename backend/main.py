@@ -63,7 +63,7 @@ async def authenticate(request: Request, data: AuthData):
 @app.get("/")
 async def root(request: Request):
     if not db.is_authenticated(request):
-        return JSONResponse(status_code=200, content={"apiVersion": API_VERSION(), "user":0})
+        return JSONResponse(status_code=200, content={"apiVersion": API_VERSION(), "user":None})
         
     udata = db.user_manager.get_user_data_by_id(from_jwt(str(request.cookies.get("authenticate"))))
     return JSONResponse(status_code=200, content=udata) # add API version to response content
