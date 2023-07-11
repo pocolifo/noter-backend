@@ -1,8 +1,10 @@
-from fastapi import FastAPI
-from starlette.requests import Request
-from starlette.responses import Response
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from starlette.requests import Request
+from starlette.responses import Response
 from pydantic import BaseModel
 
 from make_objects import *
@@ -22,7 +24,9 @@ def app_init():
     db.connect()
     return FastAPI()
 
+limiter = Limiter(key_func=get_remote_address)
 app = app_init()
+
 app.add_middleware(CORSMiddleware, allow_origins=CORS_ALLOW_ORIGINS(), allow_methods=['*'], allow_headers=['*'], allow_credentials=True)
 app.middleware("http")(route_middleware)
 
@@ -39,6 +43,12 @@ async def delete_item(request: Request, id: str):
     return Response(status_code=204)
         
     #return Response(status_code=400)
+
+@limiter.limit("3/hour")
+@app.post("/resend-verification")
+async def resend_verification_email(request: Request):
+    return Response(status_code=204)
+
 
 
 class AuthData(BaseModel):

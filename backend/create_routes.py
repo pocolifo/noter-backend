@@ -21,7 +21,10 @@ async def create_user(request: Request):
     if len(db.user_manager.get_users_by_email(userinfo["email"])) == 0:
         user = make_user(userinfo["email"], hash_password(userinfo["password"]))
         db.user_manager.insert_user(user)
-        return JSONResponse(status_code=201, content=user)
+        
+        response = JSONResponse(status_code=200, content=user)
+        response.set_cookie(key="authenticate", value=to_jwt(str(user.get("id"))), path="/") # auth on creation
+        return response
         
     return Response(status_code=400) # account with email already exists
     

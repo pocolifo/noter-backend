@@ -1,4 +1,5 @@
 fastapi
+slowapi
 pydantic
 SQLAlchemy
 starlette
