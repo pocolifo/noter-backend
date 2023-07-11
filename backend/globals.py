@@ -1,4 +1,5 @@
 import os
+from typing import List
 
 def CONN_LINK() -> str:
     if 'SQLALCHEMY_URL' in os.environ:
@@ -8,4 +9,4 @@ def CONN_LINK() -> str:
 
 def API_VERSION() -> float: return 1.1
 def JWT_SECRET() -> str: return "secret_key"
-def CORS_ALLOW_ORIGINS() -> list[str]: return os.environ.get('CORS_ALLOW_ORIGINS', 'http://localhost:5173').split(',')
+def CORS_ALLOW_ORIGINS() -> List[str]: return os.environ.get('CORS_ALLOW_ORIGINS', 'http://localhost:5173').split(',')

@@ -18,9 +18,12 @@ async def create_user(request: Request):
     try: userinfo = await request.json()
     except json.decoder.JSONDecodeError: return Response(status_code=400)
     
-    user = make_user(userinfo["email"], hash_password(userinfo["password"]))
-    db.user_manager.insert_user(user)
-    return JSONResponse(status_code=201, content=user)
+    if len(db.user_manager.get_users_by_email(userinfo["email"])) == 0:
+        user = make_user(userinfo["email"], hash_password(userinfo["password"]))
+        db.user_manager.insert_user(user)
+        return JSONResponse(status_code=201, content=user)
+        
+    return Response(status_code=400) # account with email already exists
     
     
 @router.post("/items/create/note")

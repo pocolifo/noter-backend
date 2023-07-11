@@ -9,7 +9,7 @@ def get_current_isodate(): return str(datetime.now().isoformat())
 def to_jwt(id:str): # User ID -> Encrypted JSON
     data = {"id":id}
     secret = JWT_SECRET()
-    return jwt.encode(data, secret, algorithm='HS256')
+    return str(jwt.encode(data, secret, algorithm='HS256'))
     
 def from_jwt(wt:str): # Encrypted JSON -> User ID
     try:
