@@ -1,4 +1,3 @@
-import uvicorn, json
 from fastapi import FastAPI
 from starlette.requests import Request
 from starlette.responses import Response
@@ -24,7 +23,7 @@ def app_init():
     return FastAPI()
 
 app = app_init()
-app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], allow_headers=['*'], allow_credentials=True)
+app.add_middleware(CORSMiddleware, allow_origins=CORS_ALLOW_ORIGINS(), allow_methods=['*'], allow_headers=['*'], allow_credentials=True)
 app.middleware("http")(route_middleware)
 
 app.include_router(rr.router)
