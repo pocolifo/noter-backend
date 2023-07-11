@@ -1,6 +1,6 @@
 import json
 
-from sqlalchemy import text, Column, Integer, String, ARRAY, JSON, ForeignKey
+from sqlalchemy import text, Column, Integer, String, ARRAY, JSON, Boolean, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship
@@ -23,6 +23,7 @@ class User(Base):
     lastSignedIn = Column(String)
     joinedOn = Column(String)
     history = Column(JSON)
+    email_verified = Column(Boolean)
     notes = relationship("Note", back_populates="owner")
 
 class Note(Base):
@@ -73,6 +74,7 @@ class UserManager(BaseManager):
                 'lastSignedIn': user.lastSignedIn,
                 'joinedOn': user.joinedOn,
                 'history': user.history,
+                'email_verified': user.email_verified
             })
             
         return False
@@ -85,15 +87,15 @@ class UserManager(BaseManager):
             stripe_id=user.get('stripe_id'),
             lastSignedIn=user.get('lastSignedIn'),
             joinedOn=user.get('joinedOn'),
-            
-            history=user.get('history')
+            history=user.get('history'),
+            email_verified=user.get('email_verified')
         )
         self.session.add(user_obj)
         self.session.commit()
 
     def get_users_by_email(self, email: str):
         users = self.session.query(User).filter(User.email == email).all()
-        return [{"id": user.id, "email": user.email, "password": user.password, "stripe_id": user.stripe_id, "lastSignedIn": user.lastSignedIn, "joinedOn": user.joinedOn, "history": user.history} for user in users]
+        return [{"id": user.id, "email": user.email, "password": user.password, "stripe_id": user.stripe_id, "lastSignedIn": user.lastSignedIn, "joinedOn": user.joinedOn, "history": user.history, "email_verified": user.email_verified} for user in users]
 
     def update_lastsignedin(self, user_id:str):
         users = self.session.query(User).filter(User.id == user_id).all()
@@ -102,6 +104,18 @@ class UserManager(BaseManager):
             user.lastSignedIn = datetime.now().isoformat()
 
         self.session.commit()
+        
+    def update_email_verified(self, request: Request, user_id:str):
+        user = self.session.query(User).filter(User.id == user_id).one_or_none()
+        
+        if user is None: return False
+        if user.id != from_jwt(str(request.cookies.get("authenticate"))): return False
+        
+        user.email_verified = True
+        self.session.commit()
+        
+        return True
+        
         
 
 class NoteManager(BaseManager):

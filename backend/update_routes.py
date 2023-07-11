@@ -31,3 +31,12 @@ async def update_blocks(request: Request, id: str):
     db.note_manager.update_blocks_by_id(request, id, json.dumps(newblockinfo))
     
     return Response(status_code=204)
+    
+    
+@router.post("/verify")
+async def verify_email(request: Request, id: str):
+    # Will return 400 if verifying a user you aren't authenticated on
+    update = db.user_manager.update_email_verified(request, id)
+    if not update: return Response(status_code=400)
+    
+    return Response(status_code=204)

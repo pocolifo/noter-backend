@@ -18,8 +18,8 @@ def make_user(email: str, password: str):
         "stripe_id":"",
         "lastSignedIn":str(datetime.now().isoformat()),
         "joinedOn":str(datetime.now().isoformat()),
-        "history":[]
-        
+        "history":[],
+        "email_verified":False  
     }
 
 def make_note(request: Request, name: str, path: list, studyguide: bool):
