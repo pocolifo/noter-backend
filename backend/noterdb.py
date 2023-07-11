@@ -102,6 +102,7 @@ class UserManager(BaseManager):
             user.lastSignedIn = datetime.now().isoformat()
 
         self.session.commit()
+        
 
 class NoteManager(BaseManager):
     def insert_note(self, note: dict):
@@ -162,6 +163,10 @@ class FolderManager(BaseManager):
         self.session.add(folder_obj)
         self.session.commit()
 
+    def get_users_folders(self, request: Request):
+        user_id = from_jwt(str(request.cookies.get("authenticate")))
+        folders = self.session.query(Folder).filter(Folder.owner_id == user_id).all()
+        return [{"id": folder.id, "type": folder.type, "name": folder.name, "path": folder.path, "lastEdited": folder.lastEdited, "createdOn": folder.createdOn} for folder in folders]
 
 class DB:
     def __init__(self, conn_link: str):

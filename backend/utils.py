@@ -7,9 +7,9 @@ ph = argon2.PasswordHasher()
 def get_current_isodate(): return str(datetime.now().isoformat())
 
 def to_jwt(id:str): # User ID -> Encrypted JSON
-    d = {"id":id}
+    data = {"id":id}
     secret = JWT_SECRET()
-    return jwt.encode(d, secret, algorithm='HS256')
+    return jwt.encode(data, secret, algorithm='HS256')
     
 def from_jwt(wt:str): # Encrypted JSON -> User ID
     try:

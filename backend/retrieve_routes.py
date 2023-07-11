@@ -19,7 +19,7 @@ async def get_item(request: Request, id: str):
     
     
 @router.post("/items/list")
-async def list_notes(request: Request):
+async def list_items(request: Request):
     ret = []
     
     try: path = await request.json()
@@ -31,5 +31,9 @@ async def list_notes(request: Request):
     for n in curr_users_notes:               
         if str(n["path"]) == str(path): ret.append(n)
             
+    curr_users_folders = db.folder_manager.get_users_folders(request)
+    for f in curr_users_folders:
+        if str(f["path"]) == str(path): ret.append(f)
+        
     return JSONResponse(status_code=200, content=ret)
     
