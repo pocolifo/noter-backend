@@ -11,6 +11,7 @@ from make_objects import *
 from utils import *
 from globals import *
 from noterdb import DB
+from smtputil import Client
 from middleware import route_middleware
 
 import retrieve_routes as rr
@@ -18,10 +19,15 @@ import update_routes as ur
 import create_routes as cr
 
 db = None
+smtp_client = None
 def app_init():
-    global db
+    global db, smtp_client
     db = DB(CONN_LINK())
     db.connect()
+    
+    smtp_login = SMTP_LOGIN()
+    smtp_client = Client(smtp_login.get("server"), smtp_login.get("port"), smtp_login.get("email"), smtp_login.get("password"))
+    smtp_client.connect()
     return FastAPI()
 
 limiter = Limiter(key_func=get_remote_address)
@@ -47,8 +53,11 @@ async def delete_item(request: Request, id: str):
 @limiter.limit("3/hour")
 @app.post("/resend-verification")
 async def resend_verification_email(request: Request):
-    return Response(status_code=204)
-
+    user = json.loads(db.user_manager.get_user_data_by_id(from_jwt(str(request.cookies.get("authenticate")))))
+    m_link = f"http://localhost:8000/verify?id={user.get('id')}"
+    
+    if smtp_client.send_verification_email(user.get('email'), m_link): return Response(status_code=200)
+    else: return Response(status_code=400)
 
 
 class AuthData(BaseModel):

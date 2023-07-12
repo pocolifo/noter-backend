@@ -7,6 +7,14 @@ def CONN_LINK() -> str:
     else:
         return "postgresql://postgres:password@localhost/postgres" # Assumes Port is Default (5432)
 
+def SMTP_LOGIN() -> dict:
+    return {
+    "server":"smtp.gmail.com",
+    "port":587,
+    "email":"jayfishman98@gmail.com",
+    "password":"zwnzditfpwtzubsm"
+    }
+    
 def API_VERSION() -> float: return 1.1
 def JWT_SECRET() -> str: return "secret_key"
 def CORS_ALLOW_ORIGINS() -> List[str]: return os.environ.get('CORS_ALLOW_ORIGINS', 'http://localhost:5173').split(',')

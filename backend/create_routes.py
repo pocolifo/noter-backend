@@ -2,14 +2,20 @@ from fastapi import APIRouter
 from starlette.requests import Request
 from starlette.responses import Response
 from fastapi.responses import JSONResponse
+from starlette.background import BackgroundTask
 
 from noterdb import *
+from smtputil import Client
 from globals import *
 from make_objects import *
 from utils import *
 
 db = DB(CONN_LINK())
 db.connect()
+
+smtp_login = SMTP_LOGIN()
+smtp_client = Client(smtp_login.get("server"), smtp_login.get("port"), smtp_login.get("email"), smtp_login.get("password"))
+smtp_client.connect()
 
 router = APIRouter()
 
@@ -22,7 +28,10 @@ async def create_user(request: Request):
         user = make_user(userinfo["email"], hash_password(userinfo["password"]))
         db.user_manager.insert_user(user)
         
-        response = JSONResponse(status_code=200, content=user)
+        m_link = f"http://localhost:8000/verify?id={user.get('id')}"
+        task = BackgroundTask(smtp_client.send_verification_email, to=user.get("email"), link=m_link)
+        
+        response = JSONResponse(status_code=200, content=user, background=task)
         response.set_cookie(key="authenticate", value=to_jwt(str(user.get("id"))), path="/") # auth on creation
         return response
         
