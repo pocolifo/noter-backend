@@ -1,10 +1,11 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from starlette.requests import Request
 from starlette.responses import Response
 from fastapi.responses import JSONResponse
 
 from noterdb import *
 from globals import *
+from dependency import auth_dependency
 
 db = DB(CONN_LINK())
 db.connect()
@@ -12,7 +13,7 @@ db.connect()
 router = APIRouter()
 
 @router.post("/items/update/metadata")
-async def update_metadata(request: Request, id: str):
+async def update_metadata(request: Request, id: str, is_auth: bool = Depends(auth_dependency)):
     try: updateinfo = await request.json()
     except json.decoder.JSONDecodeError: return Response(status_code=400)
     
@@ -24,7 +25,7 @@ async def update_metadata(request: Request, id: str):
     
     
 @router.put("/items/update/blocks")
-async def update_blocks(request: Request, id: str):
+async def update_blocks(request: Request, id: str, is_auth: bool = Depends(auth_dependency)):
     try: newblockinfo = await request.json()
     except json.decoder.JSONDecodeError: return Response(status_code=400)
 
@@ -33,9 +34,8 @@ async def update_blocks(request: Request, id: str):
     return Response(status_code=204)
     
     
-@router.post("/verify")
+@router.get("/verify")
 async def verify_email(request: Request, id: str):
-    # Will return 400 if verifying a user you aren't authenticated on
     update = db.user_manager.update_email_verified(request, id)
     if not update: return Response(status_code=400)
     

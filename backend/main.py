@@ -12,7 +12,7 @@ from utils import *
 from globals import *
 from noterdb import DB
 from smtputil import Client
-from middleware import route_middleware
+from dependency import auth_dependency
 
 import retrieve_routes as rr
 import update_routes as ur
@@ -30,11 +30,11 @@ def app_init():
     smtp_client.connect()
     return FastAPI()
 
+
 limiter = Limiter(key_func=get_remote_address)
 app = app_init()
 
 app.add_middleware(CORSMiddleware, allow_origins=CORS_ALLOW_ORIGINS(), allow_methods=['*'], allow_headers=['*'], allow_credentials=True)
-app.middleware("http")(route_middleware)
 
 app.include_router(rr.router)
 app.include_router(ur.router)
@@ -42,17 +42,16 @@ app.include_router(cr.router)
 
 
 @app.delete("/items/delete")
-async def delete_item(request: Request, id: str):
-    if not db.is_authenticated(request): return Response(status_code=401)
-
+async def delete_item(request: Request, id: str, is_auth: bool = Depends(auth_dependency)):
     db.delete_item_by_id(request, id)
     return Response(status_code=204)
         
     #return Response(status_code=400)
 
+
 @limiter.limit("3/hour")
 @app.post("/resend-verification")
-async def resend_verification_email(request: Request):
+async def resend_verification_email(request: Request, is_auth: bool = Depends(auth_dependency)):
     user = json.loads(db.user_manager.get_user_data_by_id(from_jwt(str(request.cookies.get("authenticate")))))
     m_link = f"http://localhost:8000/verify?id={user.get('id')}"
     

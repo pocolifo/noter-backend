@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from starlette.requests import Request
 from starlette.responses import Response
 from fastapi.responses import JSONResponse
@@ -9,6 +9,7 @@ from smtputil import Client
 from globals import *
 from make_objects import *
 from utils import *
+from dependency import auth_dependency
 
 db = DB(CONN_LINK())
 db.connect()
@@ -39,7 +40,7 @@ async def create_user(request: Request):
     
     
 @router.post("/items/create/note")
-async def create_note(request: Request):
+async def create_note(request: Request, is_auth: bool = Depends(auth_dependency)):
     try: noteinfo = await request.json()
     except json.decoder.JSONDecodeError: return Response(status_code=400)
 
@@ -51,7 +52,7 @@ async def create_note(request: Request):
 
 
 @router.post("/items/create/studyguide")
-async def create_studyguide(request: Request):
+async def create_studyguide(request: Request, is_auth: bool = Depends(auth_dependency)):
     try: noteinfo = await request.json()
     except json.decoder.JSONDecodeError: return Response(status_code=400)
     
@@ -63,7 +64,7 @@ async def create_studyguide(request: Request):
 
 
 @router.post("/items/create/folder") 
-async def create_folder(request: Request):
+async def create_folder(request: Request, is_auth: bool = Depends(auth_dependency)):
     try: folderinfo = await request.json()
     except json.decoder.JSONDecodeError: return Response(status_code=400)
     

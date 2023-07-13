@@ -109,7 +109,6 @@ class UserManager(BaseManager):
         user = self.session.query(User).filter(User.id == user_id).one_or_none()
         
         if user is None: return False
-        if user.id != from_jwt(str(request.cookies.get("authenticate"))): return False
         
         user.email_verified = True
         self.session.commit()
