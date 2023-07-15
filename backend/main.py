@@ -83,6 +83,6 @@ async def root(request: Request):
         return JSONResponse(status_code=200, content={"apiVersion": API_VERSION(), "user":None})
         
     udata = db.user_manager.get_user_data_by_id(from_jwt(str(request.cookies.get("authenticate"))))
-    return JSONResponse(status_code=200, content=udata) # add API version to response content
+    return JSONResponse(status_code=200, content=json.loads(udata)) # add API version to response content
 
 

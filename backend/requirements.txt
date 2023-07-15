@@ -8,3 +8,5 @@ alembic
 argon2-cffi
 psycopg2-binary
 pyjwt
+slowapi
+stripe>=5.0.0

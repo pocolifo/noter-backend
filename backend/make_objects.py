@@ -1,3 +1,4 @@
+import os
 from uuid import uuid4
 from datetime import datetime
 from starlette.requests import Request
@@ -7,15 +8,22 @@ from noterdb import *
 from globals import *
 from utils import *
 
+import stripe
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+
 db = DB(CONN_LINK())
 db.connect()
 
 def make_user(email: str, password: str):
+    stripe_customer = stripe.Customer.create(
+        email=email
+    )
+    
     return {
         "id":str(uuid4()),
         "email":email,
         "password":password,
-        "stripe_id":"",
+        "stripe_id": stripe_customer.id,
         "lastSignedIn":str(datetime.now().isoformat()),
         "joinedOn":str(datetime.now().isoformat()),
         "history":[],
