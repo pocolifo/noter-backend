@@ -15,29 +15,3 @@ async def auth_dependency(request: Request):
         return False
     
     return True
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

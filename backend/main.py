@@ -14,9 +14,9 @@ from noterdb import DB
 from smtputil import Client
 from dependency import auth_dependency
 
-import retrieve_routes as rr
-import update_routes as ur
-import create_routes as cr
+import routes.retrieve_routes as rr
+import routes.update_routes as ur
+import routes.create_routes as cr
 
 db = None
 smtp_client = None
@@ -82,7 +82,8 @@ async def root(request: Request):
     if not db.is_authenticated(request):
         return JSONResponse(status_code=200, content={"apiVersion": API_VERSION(), "user":None})
         
-    udata = db.user_manager.get_user_data_by_id(from_jwt(str(request.cookies.get("authenticate"))))
-    return JSONResponse(status_code=200, content=json.loads(udata)) # add API version to response content
+    udata = json.loads(db.user_manager.get_user_data_by_id(from_jwt(str(request.cookies.get("authenticate")))))
+    udata.pop("password")
+    return JSONResponse(status_code=200, content=(udata)) # add API version to response content
 
 

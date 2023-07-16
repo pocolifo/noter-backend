@@ -27,7 +27,8 @@ def make_user(email: str, password: str):
         "lastSignedIn":str(datetime.now().isoformat()),
         "joinedOn":str(datetime.now().isoformat()),
         "history":[],
-        "email_verified":False  
+        "email_verified":False,
+        "plan_id":""
     }
 
 def make_note(request: Request, name: str, path: list, studyguide: bool):

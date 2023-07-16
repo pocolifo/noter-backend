@@ -24,6 +24,8 @@ class User(Base):
     joinedOn = Column(String)
     history = Column(JSON)
     email_verified = Column(Boolean)
+    plan_id = Column(String)
+    
     notes = relationship("Note", back_populates="owner")
 
 class Note(Base):
@@ -158,7 +160,7 @@ class FolderManager(BaseManager):
         folders = self.session.query(Folder).filter(Folder.owner_id == user_id).all()
 
         for folder in folders:
-            if folder.name == fullpath[-1] and folder.path == fullpath[:-1]:
+            if folder.id == fullpath[-1] and folder.path == fullpath[:-1]:
                 return True
 
         return False
