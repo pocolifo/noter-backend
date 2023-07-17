@@ -272,7 +272,7 @@ class DB:
 
         for folder in folders:
             folder.name = new_name
-            folder.path = json.loads(new_path)
+            folder.path = new_path
             folder.lastEdited = datetime.now().isoformat()
 
         self.session.commit()
