@@ -17,6 +17,7 @@ from dependency import auth_dependency
 import routes.retrieve_routes as rr
 import routes.update_routes as ur
 import routes.create_routes as cr
+import routes.stripe_webhook_routes as swr
 
 db = None
 smtp_client = None
@@ -39,6 +40,7 @@ app.add_middleware(CORSMiddleware, allow_origins=CORS_ALLOW_ORIGINS(), allow_met
 app.include_router(rr.router)
 app.include_router(ur.router)
 app.include_router(cr.router)
+app.include_router(swr.router)
 
 
 @app.delete("/items/delete")

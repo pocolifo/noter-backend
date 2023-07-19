@@ -1,6 +1,6 @@
 import json
 
-from sqlalchemy import text, Column, Integer, String, ARRAY, JSON, Boolean, ForeignKey
+from sqlalchemy import Enum, text, Column, Integer, String, ARRAY, JSON, Boolean, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship
@@ -25,7 +25,7 @@ class User(Base):
     history = Column(JSON)
     email_verified = Column(Boolean)
     plan_id = Column(String)
-    
+    has_noter_access = Column(Boolean)
     notes = relationship("Note", back_populates="owner")
 
 class Note(Base):
@@ -76,7 +76,8 @@ class UserManager(BaseManager):
                 'lastSignedIn': user.lastSignedIn,
                 'joinedOn': user.joinedOn,
                 'history': user.history,
-                'email_verified': user.email_verified
+                'email_verified': user.email_verified,
+                'has_noter_access': user.has_noter_access
             })
             
         return False
@@ -90,14 +91,15 @@ class UserManager(BaseManager):
             lastSignedIn=user.get('lastSignedIn'),
             joinedOn=user.get('joinedOn'),
             history=user.get('history'),
-            email_verified=user.get('email_verified')
+            email_verified=user.get('email_verified'),
+            has_noter_access=user.get('has_noter_access')
         )
         self.session.add(user_obj)
         self.session.commit()
 
     def get_users_by_email(self, email: str):
         users = self.session.query(User).filter(User.email == email).all()
-        return [{"id": user.id, "email": user.email, "password": user.password, "stripe_id": user.stripe_id, "lastSignedIn": user.lastSignedIn, "joinedOn": user.joinedOn, "history": user.history, "email_verified": user.email_verified} for user in users]
+        return [{"id": user.id, "email": user.email, "password": user.password, "stripe_id": user.stripe_id, "lastSignedIn": user.lastSignedIn, "joinedOn": user.joinedOn, "history": user.history, "email_verified": user.email_verified, "has_noter_access": user.has_noter_access} for user in users]
 
     def update_lastsignedin(self, user_id:str):
         users = self.session.query(User).filter(User.id == user_id).all()

@@ -7,9 +7,7 @@ from json import dumps as jsondumps
 from noterdb import *
 from globals import *
 from utils import *
-
 import stripe
-stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 
 db = DB(CONN_LINK())
 db.connect()
@@ -28,7 +26,8 @@ def make_user(email: str, password: str):
         "joinedOn":str(datetime.now().isoformat()),
         "history":[],
         "email_verified":False,
-        "plan_id":""
+        "plan_id":"",
+        "has_noter_access": False
     }
 
 def make_note(request: Request, name: str, path: list, studyguide: bool):
