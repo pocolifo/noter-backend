@@ -255,6 +255,9 @@ class DB:
     def delete_item_by_id(self, request: Request, id: str):
         user_id = from_jwt(str(request.cookies.get("authenticate")))
 
+        self.session.query(Note).filter(Note.path.any(id), Note.owner_id == user_id).delete()
+        self.session.query(Folder).filter(Folder.path.any(id), Folder.owner_id == user_id).delete()
+
         self.session.query(Note).filter(Note.id == id, Note.owner_id == user_id).delete()
         self.session.query(Folder).filter(Folder.id == id, Folder.owner_id == user_id).delete()
         

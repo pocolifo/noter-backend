@@ -43,14 +43,6 @@ app.include_router(cr.router)
 app.include_router(swr.router)
 
 
-@app.delete("/items/delete")
-async def delete_item(request: Request, id: str, is_auth: bool = Depends(auth_dependency)):
-    db.delete_item_by_id(request, id)
-    return Response(status_code=204)
-        
-    #return Response(status_code=400)
-
-
 @limiter.limit("3/hour")
 @app.post("/resend-verification")
 async def resend_verification_email(request: Request, is_auth: bool = Depends(auth_dependency)):

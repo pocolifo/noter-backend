@@ -34,6 +34,13 @@ async def update_blocks(request: Request, id: str, is_auth: bool = Depends(auth_
     return Response(status_code=204)
     
     
+@router.delete("/items/delete")
+async def delete_item(request: Request, id: str, is_auth: bool = Depends(auth_dependency)):
+    db.delete_item_by_id(request, id)
+    return Response(status_code=204)
+        
+    #return Response(status_code=400)
+    
 @router.get("/verify")
 async def verify_email(request: Request, id: str):
     update = db.user_manager.update_email_verified(request, id)
