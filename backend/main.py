@@ -59,14 +59,15 @@ class AuthData(BaseModel):
 
 @app.post("/authenticate")
 async def authenticate(request: Request, data: AuthData):
-    pusers = db.user_manager.get_users_by_email(data.email)
-    for u in pusers:
-        if u["email"] == data.email and verify_hash(u["password"], data.password):
-            response = JSONResponse(status_code=200, content={"authenticated": True})
-            
-            response.set_cookie(key="authenticate", value=to_jwt(str(u["id"])), path="/")
-            db.user_manager.update_lastsignedin(str(u["id"]))
-            return response
+    u = db.user_manager.get_user_by_email(data.email)
+    if u is None: return {"authenticated": False}
+    
+    if u["email"] == data.email and verify_hash(u["password"], data.password):
+        response = JSONResponse(status_code=200, content={"authenticated": True})
+        
+        response.set_cookie(key="authenticate", value=to_jwt(str(u["id"])), path="/")
+        db.user_manager.update_lastsignedin(str(u["id"]))
+        return response
             
     return {"authenticated": False}
     

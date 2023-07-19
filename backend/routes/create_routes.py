@@ -25,7 +25,7 @@ async def create_user(request: Request):
     try: userinfo = await request.json()
     except json.decoder.JSONDecodeError: return Response(status_code=400)
     
-    if len(db.user_manager.get_users_by_email(userinfo["email"])) == 0:
+    if db.user_manager.get_user_by_email(userinfo["email"]) is None:
         user = make_user(userinfo["email"], hash_password(userinfo["password"]))
         db.user_manager.insert_user(user)
         user.pop("password")

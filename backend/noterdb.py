@@ -1,63 +1,15 @@
 import json
 
 from sqlalchemy import Enum, text, Column, Integer, String, ARRAY, JSON, Boolean, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base, relationship
-from sqlalchemy.orm.attributes import flag_modified 
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.attributes import flag_modified
 
 from datetime import datetime
 from starlette.requests import Request
+
 from utils import *
-
-Base = declarative_base()
-
-class User(Base):
-    __tablename__ = 'users'
-
-    primary_id = Column(Integer, primary_key=True)
-    id = Column(String, unique=True)
-    email = Column(String)
-    password = Column(String)
-    stripe_id = Column(String)
-    lastSignedIn = Column(String)
-    joinedOn = Column(String)
-    history = Column(JSON)
-    email_verified = Column(Boolean)
-    plan_id = Column(String)
-    has_noter_access = Column(Boolean)
-    notes = relationship("Note", back_populates="owner")
-
-class Note(Base):
-    __tablename__ = 'notes'
-
-    primary_id = Column(Integer, primary_key=True)
-    id = Column(String, unique=True)
-    type = Column(String)
-    name = Column(String)
-    path = Column(ARRAY(String))
-    lastEdited = Column(String)
-    createdOn = Column(String)
-    owner_id = Column(String, ForeignKey('users.id'))
-    blocks = Column(JSON)
-
-    owner = relationship("User", back_populates="notes")
-
-
-class Folder(Base):
-    __tablename__ = 'folders'
-    
-    primary_id = Column(Integer, primary_key=True)
-    id = Column(String, unique=True)
-    type = Column(String)
-    name = Column(String)
-    path = Column(ARRAY(String))
-    lastEdited = Column(String)
-    createdOn = Column(String)
-    owner_id = Column(String, ForeignKey('users.id'))
-
-    owner = relationship("User")
-
+from tables import User, Note, Folder
 
 class BaseManager:
     def __init__(self, session):
@@ -97,20 +49,21 @@ class UserManager(BaseManager):
         self.session.add(user_obj)
         self.session.commit()
 
-    def get_users_by_email(self, email: str):
-        users = self.session.query(User).filter(User.email == email).all()
-        return [{"id": user.id, "email": user.email, "password": user.password, "stripe_id": user.stripe_id, "lastSignedIn": user.lastSignedIn, "joinedOn": user.joinedOn, "history": user.history, "email_verified": user.email_verified, "has_noter_access": user.has_noter_access} for user in users]
+    def get_user_by_email(self, email: str):
+        user = self.session.query(User).filter(User.email == email).first()
+        
+        if user is None: return None
+        return {"id": user.id, "email": user.email, "password": user.password, "stripe_id": user.stripe_id, "lastSignedIn": user.lastSignedIn, "joinedOn": user.joinedOn, "history": user.history, "email_verified": user.email_verified, "has_noter_access": user.has_noter_access}
 
     def update_lastsignedin(self, user_id:str):
-        users = self.session.query(User).filter(User.id == user_id).all()
+        user = self.session.query(User).filter(User.id == user_id).first()
 
-        for user in users:
-            user.lastSignedIn = datetime.now().isoformat()
+        if user is not None: user.lastSignedIn = datetime.now().isoformat()
 
         self.session.commit()
         
     def update_email_verified(self, request: Request, user_id:str):
-        user = self.session.query(User).filter(User.id == user_id).one_or_none()
+        user = self.session.query(User).filter(User.id == user_id).first()
         
         if user is None: return False
         
