@@ -24,7 +24,7 @@ async def request_password_update(request: Request, is_auth: bool = Depends(auth
     user = json.loads(db.user_manager.get_user_data_by_id(id))
     
     v_code = str(randint_n(16))
-    db.user_manager.update_column(id, "verification_code", v_code)
+    if not db.user_manager.update_column(id, "verification_code", v_code): return Response(status_code=400)
     smtp_client.send_verification_code(user["email"], v_code)
     
     return Response(status_code=200)
@@ -44,13 +44,13 @@ async def request_email_update(request: Request, is_auth: bool = Depends(auth_de
         cur_code = str(randint_n(16))
         new_code = str(randint_n(16))
         
-        db.user_manager.update_column(id, "verification_code", f"{cur_code}#{new_code}")
+        if not db.user_manager.update_column(id, "verification_code", f"{cur_code}#{new_code}"): return Response(status_code=400)
         smtp_client.send_verification_code(user["email"], cur_code)
         smtp_client.send_verification_code(new_email, new_code)
         
         return Response(status_code=200)
     
-    return Response(status_code=400) # New email already exists on another account
+    return Response(status_code=409) # New email already exists on another account
     
     
 @router.post("/items/update/password") # JSON EX: {"password":"my_new_password", "code":"123456"}
@@ -66,8 +66,8 @@ async def update_password(request: Request, is_auth: bool = Depends(auth_depende
     user_ver_code = str(user["verification_code"]).split("#")[0]
     
     if str(in_code) == user_ver_code:
-        db.user_manager.update_column(id, "password", new_password)
-        db.user_manager.update_column(id, "verification_code", "")
+        if not db.user_manager.update_column(id, "password", new_password): return Response(status_code=400)
+        if not db.user_manager.update_column(id, "verification_code", ""): return Response(status_code=400)
         return Response(status_code=204) # Valid code - password updated
         
     return Response(status_code=400) # Invalid code
@@ -89,8 +89,8 @@ async def update_email(request: Request, is_auth: bool = Depends(auth_dependency
     user_ver_code2 = str(user["verification_code"]).split("#")[1] # new email verification code
     
     if str(cur_code) == user_ver_code1 and str(new_code) == user_ver_code2:
-        db.user_manager.update_column(id, "email", new_email)
-        db.user_manager.update_column(id, "verification_code", "")
+        if not db.user_manager.update_column(id, "email", new_email): return Response(status_code=400)
+        if not db.user_manager.update_column(id, "verification_code", ""): return Response(status_code=400)
         return Response(status_code=204) # Valid code - password updated
         
     return Response(status_code=400) # One of the codes are invalid
