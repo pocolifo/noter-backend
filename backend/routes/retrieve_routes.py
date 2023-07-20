@@ -28,11 +28,11 @@ async def list_items(request: Request, is_auth: bool = Depends(auth_dependency))
     
     if not db.folder_manager.does_path_exist(request, path): return Response(status_code=400)
             
-    curr_users_notes = db.note_manager.get_users_notes(request)
+    curr_users_notes = db.user_manager.get_users_notes(request)
     for n in curr_users_notes:               
         if str(n["path"]) == str(path): ret.append(n)
             
-    curr_users_folders = db.folder_manager.get_users_folders(request)
+    curr_users_folders = db.user_manager.get_users_folders(request)
     for f in curr_users_folders:
         if str(f["path"]) == str(path): ret.append(f)
         

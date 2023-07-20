@@ -24,7 +24,7 @@ async def request_update_password(request: Request, is_auth: bool = Depends(auth
     user = json.loads(db.user_manager.get_user_data_by_id(id))
     
     v_code = str(randint_n(16))
-    db.user_manager.update_verification_code(id, v_code)
+    db.user_manager.update_column(id, "verification_code", v_code)
     smtp_client.send_verification_code(user["email"], v_code)
     
     return Response(status_code=200)
@@ -42,8 +42,8 @@ async def update_password(request: Request, is_auth: bool = Depends(auth_depende
     in_code = pw_data["code"]
     
     if str(in_code) == str(user["verification_code"]):
-        db.user_manager.update_password(id, new_password)
-        db.user_manager.update_verification_code(id, "")
+        db.user_manager.update_column(id, "password", new_password)
+        db.user_manager.update_column(id, "verification_code", "")
         return Response(status_code=204) # Valid code - password updated
         
     return Response(status_code=400) # Invalid code

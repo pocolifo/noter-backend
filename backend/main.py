@@ -68,7 +68,7 @@ async def authenticate(request: Request, data: AuthData):
         response = JSONResponse(status_code=200, content={"authenticated": True})
         
         response.set_cookie(key="authenticate", value=to_jwt(str(u["id"])), path="/")
-        db.user_manager.update_last_signed_in(str(u["id"]))
+        db.user_manager.update_column(str(u["id"]), "last_signed_in", str(get_current_isodate()))
         return response
             
     return {"authenticated": False}

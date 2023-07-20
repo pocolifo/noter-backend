@@ -57,43 +57,23 @@ class UserManager(BaseManager):
         if user is None: return None
         return {"id": user.id, "email": user.email, "password": user.password, "stripe_id": user.stripe_id, "last_signed_in": user.last_signed_in, "joined_on": user.joined_on, "history": user.history, "email_verified": user.email_verified, "has_noter_access": user.has_noter_access, "verification_code": user.verification_code}
 
-    def update_last_signed_in(self, user_id:str):
+    def get_users_notes(self, request: Request):
+        user_id = from_jwt(str(request.cookies.get("authenticate")))
+        notes = self.session.query(Note).filter(Note.owner_id == user_id).all()
+        return [{"id": note.id, "type": note.type, "name": note.name, "path": note.path, "last_edited": note.last_edited, "created_on": note.created_on, "blocks": note.blocks} for note in notes]
+    
+    def get_users_folders(self, request: Request):
+        user_id = from_jwt(str(request.cookies.get("authenticate")))
+        folders = self.session.query(Folder).filter(Folder.owner_id == user_id).all()
+        return [{"id": folder.id, "type": folder.type, "name": folder.name, "path": folder.path, "last_edited": folder.last_edited, "created_on": folder.created_on} for folder in folders]
+    
+    def update_column(self, user_id, column_name, column_value):
         user = self.session.query(User).filter(User.id == user_id).first()
-
-        if user is not None: user.last_signed_in = datetime.now().isoformat()
-
-        self.session.commit()
-        
-    def update_email_verified(self, request: Request, user_id:str):
-        user = self.session.query(User).filter(User.id == user_id).first()
-        
-        if user is None: return False
-        
-        user.email_verified = True
-        self.session.commit()
-        
-        return True
-        
-    def update_verification_code(self, user_id:str, new_code:str):
-        user = self.session.query(User).filter(User.id == user_id).first()
-        
-        if user is None: return False
-        
-        user.verification_code = new_code
-        self.session.commit()
-        
-        return True
-        
-    def update_password(self, user_id:str, new_pass_hash:str):
-        user = self.session.query(User).filter(User.id == user_id).first()
-        
-        if user is None: return False
-        
-        user.password = new_pass_hash
-        self.session.commit()
-        
-        return True
-        
+        if user is not None:
+            setattr(user, column_name, column_value)
+            self.session.commit()
+            return True
+        return False
         
 
 class NoteManager(BaseManager):
@@ -122,12 +102,7 @@ class NoteManager(BaseManager):
 
         self.session.commit()
 
-    def get_users_notes(self, request: Request):
-        user_id = from_jwt(str(request.cookies.get("authenticate")))
-        notes = self.session.query(Note).filter(Note.owner_id == user_id).all()
-        return [{"id": note.id, "type": note.type, "name": note.name, "path": note.path, "last_edited": note.last_edited, "created_on": note.created_on, "blocks": note.blocks} for note in notes]
-
-
+    
 class FolderManager(BaseManager):
     def does_path_exist(self, request: Request, fullpath: list):
         if len(fullpath) == 0: 
@@ -154,11 +129,6 @@ class FolderManager(BaseManager):
         )
         self.session.add(folder_obj)
         self.session.commit()
-
-    def get_users_folders(self, request: Request):
-        user_id = from_jwt(str(request.cookies.get("authenticate")))
-        folders = self.session.query(Folder).filter(Folder.owner_id == user_id).all()
-        return [{"id": folder.id, "type": folder.type, "name": folder.name, "path": folder.path, "last_edited": folder.last_edited, "created_on": folder.created_on} for folder in folders]
 
 class DB:
     def __init__(self, conn_link: str):

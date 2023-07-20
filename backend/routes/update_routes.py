@@ -43,7 +43,7 @@ async def delete_item(request: Request, id: str, is_auth: bool = Depends(auth_de
     
 @router.get("/verify")
 async def verify_email(request: Request, id: str):
-    update = db.user_manager.update_email_verified(request, id)
+    update = db.user_manager.update_column(id, "email_verified", True)
     if not update: return Response(status_code=400)
     
     return Response(status_code=204)
