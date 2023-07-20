@@ -1,4 +1,4 @@
-from sqlalchemy import Enum, text, Column, Integer, String, ARRAY, JSON, Boolean, ForeignKey
+from sqlalchemy import Enum, text, TEXT, Column, Integer, String, ARRAY, JSON, Boolean, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -10,6 +10,8 @@ class User(Base):
     primary_id = Column(Integer, primary_key=True)
     id = Column(String, unique=True)
     email = Column(String)
+    name = Column(String)
+    pfp = Column(TEXT)
     password = Column(String)
     stripe_id = Column(String)
     last_signed_in = Column(String)

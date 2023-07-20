@@ -94,3 +94,27 @@ async def update_email(request: Request, is_auth: bool = Depends(auth_dependency
         return Response(status_code=204) # Valid code - password updated
         
     return Response(status_code=400) # One of the codes are invalid
+
+@router.post("/items/update/name") # JSON EX: {"name":"my_new_name"}
+async def update_name(request: Request, is_auth: bool = Depends(auth_dependency)):
+    try: name_data = await request.json()
+    except json.decoder.JSONDecodeError: return (Response(status_code=400))
+
+    new_name = name_data["name"]
+
+    id = from_jwt(str(request.cookies.get("authenticate")))
+    if not db.user_manager.update_column(id, "name", new_name): return Response(status_code=400)
+
+    return Response(status_code=204)
+
+@router.post("/items/update/pfp")
+async def update_name(request: Request, is_auth: bool = Depends(auth_dependency)):
+    try: pfp_data = await request.json()
+    except json.decoder.JSONDecodeError: return (Response(status_code=400))
+
+    new_pfp = pfp_data["image"]
+
+    id = from_jwt(str(request.cookies.get("authenticate")))
+    if not db.user_manager.update_column(id, "pfp", new_pfp): return Response(status_code=400)
+
+    return Response(status_code=204)

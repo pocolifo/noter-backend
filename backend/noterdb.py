@@ -24,6 +24,8 @@ class UserManager(BaseManager):
                 'id': user.id,
                 'email': user.email,
                 'password': user.password,
+                'name': user.name,
+                'pfp': user.pfp,
                 'stripe_id': user.stripe_id,
                 'last_signed_in': user.last_signed_in,
                 'joined_on': user.joined_on,
@@ -40,6 +42,8 @@ class UserManager(BaseManager):
             id=user.get('id'),
             email=user.get('email'),
             password=user.get('password'),
+            name=user.get('name'),
+            pfp=user.get('pfp'),
             stripe_id=user.get('stripe_id'),
             last_signed_in=user.get('last_signed_in'),
             joined_on=user.get('joined_on'),
@@ -55,7 +59,7 @@ class UserManager(BaseManager):
         user = self.session.query(User).filter(User.email == email).first()
         
         if user is None: return None
-        return {"id": user.id, "email": user.email, "password": user.password, "stripe_id": user.stripe_id, "last_signed_in": user.last_signed_in, "joined_on": user.joined_on, "history": user.history, "email_verified": user.email_verified, "has_noter_access": user.has_noter_access, "verification_code": user.verification_code}
+        return {"id": user.id, "email": user.email, "password": user.password, "name": user.name, "pfp": user.pfp, "stripe_id": user.stripe_id, "last_signed_in": user.last_signed_in, "joined_on": user.joined_on, "history": user.history, "email_verified": user.email_verified, "has_noter_access": user.has_noter_access, "verification_code": user.verification_code}
 
     def get_users_notes(self, request: Request):
         user_id = from_jwt(str(request.cookies.get("authenticate")))
