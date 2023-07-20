@@ -35,20 +35,22 @@ async def request_email_update(request: Request, is_auth: bool = Depends(auth_de
     try: email_data = await request.json()
     except json.decoder.JSONDecodeError: return Response(status_code=400)
 
-    id = from_jwt(str(request.cookies.get("authenticate")))
-    user = json.loads(db.user_manager.get_user_data_by_id(id))
     new_email = email_data["email"]
+
+    if db.user_manager.get_user_by_email(new_email) is None:
+        id = from_jwt(str(request.cookies.get("authenticate")))
+        user = json.loads(db.user_manager.get_user_data_by_id(id))
+        
+        cur_code = str(randint_n(16))
+        new_code = str(randint_n(16))
+        
+        db.user_manager.update_column(id, "verification_code", f"{cur_code}#{new_code}")
+        smtp_client.send_verification_code(user["email"], cur_code)
+        smtp_client.send_verification_code(new_email, new_code)
+        
+        return Response(status_code=200)
     
-    cur_code = str(randint_n(16))
-    new_code = str(randint_n(16))
-    
-    db.user_manager.update_column(id, "verification_code", f"{cur_code}#{new_code}")
-    smtp_client.send_verification_code(user["email"], cur_code)
-    smtp_client.send_verification_code(new_email, new_code)
-    
-    return Response(status_code=200)
-    
-    
+    return Response(status_code=400) # New email already exists on another account
     
     
 @router.post("/items/update/password") # JSON EX: {"password":"my_new_password", "code":"123456"}
