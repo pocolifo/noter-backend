@@ -22,12 +22,12 @@ def make_user(email: str, password: str):
         "email":email,
         "password":password,
         "stripe_id": stripe_customer.id,
-        "lastSignedIn":str(datetime.now().isoformat()),
-        "joinedOn":str(datetime.now().isoformat()),
+        "last_signed_in":str(datetime.now().isoformat()),
+        "joined_on":str(datetime.now().isoformat()),
         "history":[],
         "email_verified":False,
-        "plan_id":"",
-        "has_noter_access": False
+        "has_noter_access": False,
+        "verification_code": ""
     }
 
 def make_note(request: Request, name: str, path: list, studyguide: bool):
@@ -37,8 +37,8 @@ def make_note(request: Request, name: str, path: list, studyguide: bool):
         "type":type_,
         "name":name,
         "path":path,
-        "lastEdited":"",
-        "createdOn":str(datetime.now().isoformat()),
+        "last_edited":"",
+        "created_on":str(datetime.now().isoformat()),
         "owner":from_jwt(str(request.cookies.get("authenticate"))),
         "blocks":[]
     }
@@ -49,8 +49,8 @@ def make_folder(request: Request, name: str, path: list):
         "type":"folder",
         "name":name,
         "path":path,
-        "lastEdited":"",
-        "createdOn":str(datetime.now().isoformat()),
+        "last_edited":"",
+        "created_on":str(datetime.now().isoformat()),
         "owner":from_jwt(str(request.cookies.get("authenticate")))
     }
     

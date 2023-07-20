@@ -1,4 +1,5 @@
 from datetime import datetime
+from random import randint
 from globals import *
 import argon2, jwt
 
@@ -24,3 +25,9 @@ def hash_password(password): return ph.hash(password) #insert hash function in t
 def verify_hash(hash, password):
     try: return ph.verify(hash, password)
     except argon2.exceptions.VerifyMismatchError: return False
+    
+def randint_n(d):
+    range_start = 10**(d-1)
+    range_end = (10**d)-1
+    return randint(range_start, range_end)
+    

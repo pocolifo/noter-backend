@@ -12,12 +12,13 @@ class User(Base):
     email = Column(String)
     password = Column(String)
     stripe_id = Column(String)
-    lastSignedIn = Column(String)
-    joinedOn = Column(String)
+    last_signed_in = Column(String)
+    joined_on = Column(String)
     history = Column(JSON)
     email_verified = Column(Boolean)
-    plan_id = Column(String)
     has_noter_access = Column(Boolean)
+    verification_code = Column(String)
+    
     notes = relationship("Note", back_populates="owner")
 
 
@@ -29,8 +30,8 @@ class Note(Base):
     type = Column(String)
     name = Column(String)
     path = Column(ARRAY(String))
-    lastEdited = Column(String)
-    createdOn = Column(String)
+    last_edited = Column(String)
+    created_on = Column(String)
     owner_id = Column(String, ForeignKey('users.id'))
     blocks = Column(JSON)
 
@@ -45,8 +46,8 @@ class Folder(Base):
     type = Column(String)
     name = Column(String)
     path = Column(ARRAY(String))
-    lastEdited = Column(String)
-    createdOn = Column(String)
+    last_edited = Column(String)
+    created_on = Column(String)
     owner_id = Column(String, ForeignKey('users.id'))
 
     owner = relationship("User")

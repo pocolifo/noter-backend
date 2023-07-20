@@ -34,3 +34,17 @@ class Client:
             self.connection.sendmail(self.email, to, msg)
             return True
         except: return False
+        
+        
+    def send_verification_code(self, to:str, code:str):
+        msg = "\r\n".join([
+          "From: {0}".format(self.email),
+          "To: {0}".format(to),
+          "Subject: Verification Code",
+          "",
+          "Your verification code: {0}".format(code)
+          ])
+        try:
+            self.connection.sendmail(self.email, to, msg)
+            return True
+        except: return False

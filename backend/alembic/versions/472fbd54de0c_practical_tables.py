@@ -29,8 +29,8 @@ def upgrade() -> None:
         sa.Column('email', sa.String),
         sa.Column('password', sa.String),
         sa.Column('stripe_id', sa.String),
-        sa.Column('lastSignedIn', sa.String),
-        sa.Column('joinedOn', sa.String),
+        sa.Column('last_signed_in', sa.String),
+        sa.Column('joined_on', sa.String),
         sa.Column('history', JSON)
     )
 
@@ -41,8 +41,8 @@ def upgrade() -> None:
         sa.Column('type', sa.String),
         sa.Column('name', sa.String),
         sa.Column('path', sa.ARRAY(sa.String)),
-        sa.Column('lastEdited', sa.String),
-        sa.Column('createdOn', sa.String),
+        sa.Column('last_edited', sa.String),
+        sa.Column('created_on', sa.String),
         sa.Column('owner_id', sa.String, sa.ForeignKey('users.id')),
         sa.Column('blocks', JSON)
     )
@@ -54,8 +54,8 @@ def upgrade() -> None:
         sa.Column('type', sa.String),
         sa.Column('name', sa.String),
         sa.Column('path', sa.ARRAY(sa.String)),
-        sa.Column('lastEdited', sa.String),
-        sa.Column('createdOn', sa.String),
+        sa.Column('last_edited', sa.String),
+        sa.Column('created_on', sa.String),
         sa.Column('owner_id', sa.String, sa.ForeignKey('users.id')),
     )
 

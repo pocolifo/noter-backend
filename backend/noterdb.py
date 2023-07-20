@@ -25,11 +25,12 @@ class UserManager(BaseManager):
                 'email': user.email,
                 'password': user.password,
                 'stripe_id': user.stripe_id,
-                'lastSignedIn': user.lastSignedIn,
-                'joinedOn': user.joinedOn,
+                'last_signed_in': user.last_signed_in,
+                'joined_on': user.joined_on,
                 'history': user.history,
                 'email_verified': user.email_verified,
-                'has_noter_access': user.has_noter_access
+                'has_noter_access': user.has_noter_access,
+                'verification_code': user.verification_code
             })
             
         return False
@@ -40,11 +41,12 @@ class UserManager(BaseManager):
             email=user.get('email'),
             password=user.get('password'),
             stripe_id=user.get('stripe_id'),
-            lastSignedIn=user.get('lastSignedIn'),
-            joinedOn=user.get('joinedOn'),
+            last_signed_in=user.get('last_signed_in'),
+            joined_on=user.get('joined_on'),
             history=user.get('history'),
             email_verified=user.get('email_verified'),
-            has_noter_access=user.get('has_noter_access')
+            has_noter_access=user.get('has_noter_access'),
+            verification_code=user.get('verification_code')
         )
         self.session.add(user_obj)
         self.session.commit()
@@ -53,12 +55,12 @@ class UserManager(BaseManager):
         user = self.session.query(User).filter(User.email == email).first()
         
         if user is None: return None
-        return {"id": user.id, "email": user.email, "password": user.password, "stripe_id": user.stripe_id, "lastSignedIn": user.lastSignedIn, "joinedOn": user.joinedOn, "history": user.history, "email_verified": user.email_verified, "has_noter_access": user.has_noter_access}
+        return {"id": user.id, "email": user.email, "password": user.password, "stripe_id": user.stripe_id, "last_signed_in": user.last_signed_in, "joined_on": user.joined_on, "history": user.history, "email_verified": user.email_verified, "has_noter_access": user.has_noter_access, "verification_code": user.verification_code}
 
-    def update_lastsignedin(self, user_id:str):
+    def update_last_signed_in(self, user_id:str):
         user = self.session.query(User).filter(User.id == user_id).first()
 
-        if user is not None: user.lastSignedIn = datetime.now().isoformat()
+        if user is not None: user.last_signed_in = datetime.now().isoformat()
 
         self.session.commit()
         
@@ -72,6 +74,26 @@ class UserManager(BaseManager):
         
         return True
         
+    def update_verification_code(self, user_id:str, new_code:str):
+        user = self.session.query(User).filter(User.id == user_id).first()
+        
+        if user is None: return False
+        
+        user.verification_code = new_code
+        self.session.commit()
+        
+        return True
+        
+    def update_password(self, user_id:str, new_pass_hash:str):
+        user = self.session.query(User).filter(User.id == user_id).first()
+        
+        if user is None: return False
+        
+        user.password = new_pass_hash
+        self.session.commit()
+        
+        return True
+        
         
 
 class NoteManager(BaseManager):
@@ -81,8 +103,8 @@ class NoteManager(BaseManager):
             type=note.get('type'),
             name=note.get('name'),
             path=note.get('path'),
-            lastEdited=note.get('lastEdited'),
-            createdOn=note.get('createdOn'),
+            last_edited=note.get('last_edited'),
+            created_on=note.get('created_on'),
             owner_id=note.get('owner'),
             blocks=note.get('blocks')
         )
@@ -96,14 +118,14 @@ class NoteManager(BaseManager):
 
         for note in notes:
             note.blocks = json.loads(new_blocks)
-            note.lastEdited = datetime.now().isoformat()
+            note.last_edited = datetime.now().isoformat()
 
         self.session.commit()
 
     def get_users_notes(self, request: Request):
         user_id = from_jwt(str(request.cookies.get("authenticate")))
         notes = self.session.query(Note).filter(Note.owner_id == user_id).all()
-        return [{"id": note.id, "type": note.type, "name": note.name, "path": note.path, "lastEdited": note.lastEdited, "createdOn": note.createdOn, "blocks": note.blocks} for note in notes]
+        return [{"id": note.id, "type": note.type, "name": note.name, "path": note.path, "last_edited": note.last_edited, "created_on": note.created_on, "blocks": note.blocks} for note in notes]
 
 
 class FolderManager(BaseManager):
@@ -126,8 +148,8 @@ class FolderManager(BaseManager):
             type=folder.get('type'),
             name=folder.get('name'),
             path=folder.get('path'),
-            lastEdited=folder.get('lastEdited'),
-            createdOn=folder.get('createdOn'),
+            last_edited=folder.get('last_edited'),
+            created_on=folder.get('created_on'),
             owner_id=folder.get('owner')
         )
         self.session.add(folder_obj)
@@ -136,7 +158,7 @@ class FolderManager(BaseManager):
     def get_users_folders(self, request: Request):
         user_id = from_jwt(str(request.cookies.get("authenticate")))
         folders = self.session.query(Folder).filter(Folder.owner_id == user_id).all()
-        return [{"id": folder.id, "type": folder.type, "name": folder.name, "path": folder.path, "lastEdited": folder.lastEdited, "createdOn": folder.createdOn} for folder in folders]
+        return [{"id": folder.id, "type": folder.type, "name": folder.name, "path": folder.path, "last_edited": folder.last_edited, "created_on": folder.created_on} for folder in folders]
 
 class DB:
     def __init__(self, conn_link: str):
@@ -183,8 +205,8 @@ class DB:
                 'type': note.type,
                 'name': note.name,
                 'path': note.path,
-                'lastEdited': note.lastEdited,
-                'createdOn': note.createdOn,
+                'last_edited': note.last_edited,
+                'created_on': note.created_on,
                 'owner_id': note.owner_id,
                 'blocks': note.blocks
             })
@@ -197,8 +219,8 @@ class DB:
                 'type': folder.type,
                 'name': folder.name,
                 'path': folder.path,
-                'lastEdited': folder.lastEdited,
-                'createdOn': folder.createdOn,
+                'last_edited': folder.last_edited,
+                'created_on': folder.created_on,
                 'owner_id': folder.owner_id,
             })
 
@@ -226,12 +248,12 @@ class DB:
         for note in notes:
             note.name = new_name
             note.path = new_path
-            note.lastEdited = datetime.now().isoformat()
+            note.last_edited = datetime.now().isoformat()
 
         for folder in folders:
             folder.name = new_name
             folder.path = new_path
-            folder.lastEdited = datetime.now().isoformat()
+            folder.last_edited = datetime.now().isoformat()
 
         self.session.commit()
         

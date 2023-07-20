@@ -17,6 +17,7 @@ from dependency import auth_dependency
 import routes.retrieve_routes as rr
 import routes.update_routes as ur
 import routes.create_routes as cr
+import routes.account_routes as ac
 import routes.stripe_webhook_routes as swr
 
 db = None
@@ -40,6 +41,7 @@ app.add_middleware(CORSMiddleware, allow_origins=CORS_ALLOW_ORIGINS(), allow_met
 app.include_router(rr.router)
 app.include_router(ur.router)
 app.include_router(cr.router)
+app.include_router(ac.router)
 app.include_router(swr.router)
 
 
@@ -66,7 +68,7 @@ async def authenticate(request: Request, data: AuthData):
         response = JSONResponse(status_code=200, content={"authenticated": True})
         
         response.set_cookie(key="authenticate", value=to_jwt(str(u["id"])), path="/")
-        db.user_manager.update_lastsignedin(str(u["id"]))
+        db.user_manager.update_last_signed_in(str(u["id"]))
         return response
             
     return {"authenticated": False}
