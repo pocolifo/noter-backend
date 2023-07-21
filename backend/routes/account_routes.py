@@ -91,6 +91,7 @@ async def update_email(request: Request, is_auth: bool = Depends(auth_dependency
     if str(cur_code) == user_ver_code1 and str(new_code) == user_ver_code2:
         if not db.user_manager.update_column(id, "email", new_email): return Response(status_code=400)
         if not db.user_manager.update_column(id, "verification_code", ""): return Response(status_code=400)
+        if not db.user_manager.update_column(id, "email_verified", True): return Response(status_code=400) # true if not already
         return Response(status_code=204) # Valid code - password updated
         
     return Response(status_code=400) # One of the codes are invalid

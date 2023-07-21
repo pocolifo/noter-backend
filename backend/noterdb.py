@@ -1,6 +1,6 @@
 import json
 
-from sqlalchemy import Enum, text, Column, Integer, String, ARRAY, JSON, Boolean, ForeignKey
+from sqlalchemy import func, Enum, text, Column, Integer, String, ARRAY, JSON, Boolean, ForeignKey
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.attributes import flag_modified
@@ -59,17 +59,22 @@ class UserManager(BaseManager):
         user = self.session.query(User).filter(User.email == email).first()
         
         if user is None: return None
-        return user
+        return {"id": user.id, "email": user.email, "password": user.password, "name": user.name,
+                "pfp": user.pfp, "stripe_id": user.stripe_id, "last_signed_in": user.last_signed_in,
+                "joined_on": user.joined_on, "history": user.history, "email_verified": user.email_verified,
+                "has_noter_access": user.has_noter_access, "verification_code": user.verification_code}
 
     def get_users_notes(self, request: Request):
         user_id = from_jwt(str(request.cookies.get("authenticate")))
         notes = self.session.query(Note).filter(Note.owner_id == user_id).all()
-        return notes
+        return [{"id": note.id, "type": note.type, "name": note.name, "path": note.path,
+            "last_edited": note.last_edited, "created_on": note.created_on, "blocks": note.blocks} for note in notes]
     
     def get_users_folders(self, request: Request):
         user_id = from_jwt(str(request.cookies.get("authenticate")))
         folders = self.session.query(Folder).filter(Folder.owner_id == user_id).all()
-        return folders
+        return [{"id": folder.id, "type": folder.type, "name": folder.name, "path": folder.path,
+            "last_edited": folder.last_edited, "created_on": folder.created_on} for folder in folders]
     
     def update_column(self, user_id, column_name, column_value):
         user = self.session.query(User).filter(User.id == user_id).first()
@@ -216,20 +221,17 @@ class DB:
     def update_metadata_by_id(self, request: Request, id: str, new_name: str, new_path: list):
         user_id = from_jwt(str(request.cookies.get("authenticate")))
 
-        # Update the path of the target folder
         folder = self.session.query(Folder).filter(Folder.id == id, Folder.owner_id == user_id).first()
         if folder is not None:
             folder.name = new_name
             folder.path = new_path
             folder.last_edited = datetime.now().isoformat()
 
-            # Update the paths of notes inside the folder
-            notes = self.session.query(Note).filter(Note.owner_id == user_id, Note.path.startswith(folder.path)).all()
+            notes = self.session.query(Note).filter(Note.owner_id == user_id, func.array_overlap(Note.path, folder.path)).all()
             for note in notes:
                 note.path = new_path + note.path[len(folder.path):]
 
-            # Update the paths of subfolders inside the folder
-            subfolders = self.session.query(Folder).filter(Folder.owner_id == user_id, Folder.path.startswith(folder.path)).all()
+            subfolders = self.session.query(Folder).filter(Folder.owner_id == user_id, func.array_overlap(Folder.path, folder.path)).all()
             for subfolder in subfolders:
                 subfolder.path = new_path + subfolder.path[len(folder.path):]
             
