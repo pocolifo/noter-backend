@@ -73,7 +73,7 @@ class UserManager(BaseManager):
     def get_users_folders(self, request: Request):
         user_id = from_jwt(str(request.cookies.get("authenticate")))
         folders = self.session.query(Folder).filter(Folder.owner_id == user_id).all()
-        return [{"id": folder.id, "type": folder.type, "name": folder.name, "path": folder.path,
+        return [{"id": folder.id, "type": "folder", "name": folder.name, "path": folder.path,
             "last_edited": folder.last_edited, "created_on": folder.created_on} for folder in folders]
     
     def update_column(self, user_id, column_name, column_value):
@@ -129,7 +129,6 @@ class FolderManager(BaseManager):
     def insert_folder(self, folder: dict):
         folder_obj = Folder(
             id=folder.get('id'),
-            type=folder.get('type'),
             name=folder.get('name'),
             path=folder.get('path'),
             last_edited=folder.get('last_edited'),
@@ -195,7 +194,6 @@ class DB:
         if folder is not None:
             return json.dumps({
                 'id': folder.id,
-                'type': folder.type,
                 'name': folder.name,
                 'path': folder.path,
                 'last_edited': folder.last_edited,
