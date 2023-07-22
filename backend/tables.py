@@ -1,14 +1,18 @@
 from sqlalchemy import Enum, text, TEXT, Column, Integer, String, ARRAY, JSON, Boolean, ForeignKey
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
+# NOTE: as_uuid=True will make `id` be of type uuid.UUID, which FastAPI cannot serialize.
+#       as_uuid=False will return it as a string (which is all we really need anyway) and
+#       not cause serialization issues.
+
 class User(Base):
     __tablename__ = 'users'
 
-    primary_id = Column(Integer, primary_key=True)
-    id = Column(String, unique=True)
+    id = Column(UUID(as_uuid=False), primary_key=True)
     email = Column(String)
     name = Column(String)
     pfp = Column(TEXT)
@@ -27,14 +31,13 @@ class User(Base):
 class Note(Base):
     __tablename__ = 'notes'
 
-    primary_id = Column(Integer, primary_key=True)
-    id = Column(String, unique=True)
+    id = Column(UUID(as_uuid=False), primary_key=True)
     type = Column(String)
     name = Column(String)
     path = Column(ARRAY(String))
     last_edited = Column(String)
     created_on = Column(String)
-    owner_id = Column(String, ForeignKey('users.id'))
+    owner_id = Column(UUID(as_uuid=False), ForeignKey('users.id'))
     blocks = Column(JSON)
 
     owner = relationship("User", back_populates="notes")
@@ -43,13 +46,12 @@ class Note(Base):
 class Folder(Base):
     __tablename__ = 'folders'
     
-    primary_id = Column(Integer, primary_key=True)
-    id = Column(String, unique=True)
+    id = Column(UUID(as_uuid=False), primary_key=True)
     type = Column(String)
     name = Column(String)
     path = Column(ARRAY(String))
     last_edited = Column(String)
     created_on = Column(String)
-    owner_id = Column(String, ForeignKey('users.id'))
+    owner_id = Column(UUID(as_uuid=False), ForeignKey('users.id'))
 
     owner = relationship("User")
