@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from starlette.requests import Request
 from starlette.responses import Response
 from fastapi.responses import JSONResponse
+from typing import Union
 
 from noterdb import *
 from globals import *
@@ -13,7 +14,7 @@ db.connect()
 router = APIRouter()
 
 @router.post("/items/update/metadata")
-async def update_metadata(request: Request, id: str, is_auth: bool = Depends(auth_dependency)):
+async def update_metadata(request: Request, id: str, is_auth: Union[bool, dict] = Depends(auth_dependency)):
     try: updateinfo = await request.json()
     except json.decoder.JSONDecodeError: return Response(status_code=400)
     
@@ -25,7 +26,7 @@ async def update_metadata(request: Request, id: str, is_auth: bool = Depends(aut
     
     
 @router.put("/items/update/blocks")
-async def update_blocks(request: Request, id: str, is_auth: bool = Depends(auth_dependency)):
+async def update_blocks(request: Request, id: str, is_auth: Union[bool, dict] = Depends(auth_dependency)):
     try: newblockinfo = await request.json()
     except json.decoder.JSONDecodeError: return Response(status_code=400)
 
@@ -35,14 +36,8 @@ async def update_blocks(request: Request, id: str, is_auth: bool = Depends(auth_
     
     
 @router.delete("/items/delete")
-async def delete_item(request: Request, id: str, is_auth: bool = Depends(auth_dependency)):
+async def delete_item(request: Request, id: str, is_auth: Union[bool, dict] = Depends(auth_dependency)):
     db.delete_item_by_id(request, id)
     return Response(status_code=204)
         
     #return Response(status_code=400)
-    
-@router.get("/verify")
-async def verify_email(request: Request, id: str):
-    if not db.user_manager.update_column(id, "email_verified", True): return Response(status_code=400)
-    
-    return Response(status_code=204)

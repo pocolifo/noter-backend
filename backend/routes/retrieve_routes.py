@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from starlette.requests import Request
 from starlette.responses import Response
 from fastapi.responses import JSONResponse
+from typing import Union
 
 from noterdb import *
 from globals import *
@@ -13,14 +14,14 @@ db.connect()
 router = APIRouter()
 
 @router.get("/items/{id}")
-async def get_item(request: Request, id: str, is_auth: bool = Depends(auth_dependency)):
+async def get_item(request: Request, id: str, is_auth: Union[bool, dict] = Depends(auth_dependency)):
     item = db.get_item(request, id)
     if not item: return Response(status_code=404)
     return JSONResponse(json.loads(item), status_code=200)
     
     
 @router.post("/items/list")
-async def list_items(request: Request, is_auth: bool = Depends(auth_dependency)):
+async def list_items(request: Request, is_auth: Union[bool, dict] = Depends(auth_dependency)):
     ret = []
     
     try: path = await request.json()

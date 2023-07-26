@@ -6,7 +6,7 @@ def CONN_LINK() -> str:
     if 'SQLALCHEMY_URL' in os.environ:
         return os.environ['SQLALCHEMY_URL']
     else:
-        return "postgresql://postgres:ilovebigblackcock69@localhost/postgres2" # Assumes Port is Default (5432)
+        return "postgresql://postgres:password@localhost/postgres" # Assumes Port is Default (5432)
 
 def SMTP_LOGIN() -> dict:
     return {

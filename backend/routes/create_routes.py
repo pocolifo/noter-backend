@@ -3,6 +3,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 from fastapi.responses import JSONResponse
 from starlette.background import BackgroundTask
+from typing import Union
 
 from noterdb import *
 from smtputil import Client
@@ -41,7 +42,7 @@ async def create_user(request: Request):
     
     
 @router.post("/items/create/note")
-async def create_note(request: Request, is_auth: bool = Depends(auth_dependency)):
+async def create_note(request: Request, is_auth: Union[bool, dict] = Depends(auth_dependency)):
     try: noteinfo = await request.json()
     except json.decoder.JSONDecodeError: return Response(status_code=400)
 
@@ -53,7 +54,7 @@ async def create_note(request: Request, is_auth: bool = Depends(auth_dependency)
 
 
 @router.post("/items/create/studyguide")
-async def create_studyguide(request: Request, is_auth: bool = Depends(auth_dependency)):
+async def create_studyguide(request: Request, is_auth: Union[bool, dict] = Depends(auth_dependency)):
     try: noteinfo = await request.json()
     except json.decoder.JSONDecodeError: return Response(status_code=400)
     
@@ -65,7 +66,7 @@ async def create_studyguide(request: Request, is_auth: bool = Depends(auth_depen
 
 
 @router.post("/items/create/folder") 
-async def create_folder(request: Request, is_auth: bool = Depends(auth_dependency)):
+async def create_folder(request: Request, is_auth: Union[bool, dict] = Depends(auth_dependency)):
     try: folderinfo = await request.json()
     except json.decoder.JSONDecodeError: return Response(status_code=400)
     

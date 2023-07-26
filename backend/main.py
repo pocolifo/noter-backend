@@ -1,11 +1,10 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from starlette.requests import Request
 from starlette.responses import Response
 from pydantic import BaseModel
+from typing import Union
 
 from make_objects import *
 from utils import *
@@ -19,6 +18,7 @@ import routes.update_routes as ur
 import routes.create_routes as cr
 import routes.account_routes as ac
 import routes.stripe_webhook_routes as swr
+import gptroutes.ai_routes as air
 
 db = None
 smtp_client = None
@@ -32,8 +32,6 @@ def app_init():
     smtp_client.connect()
     return FastAPI()
 
-
-limiter = Limiter(key_func=get_remote_address)
 app = app_init()
 
 app.add_middleware(CORSMiddleware, allow_origins=CORS_ALLOW_ORIGINS(), allow_methods=['*'], allow_headers=['*'], allow_credentials=True)
@@ -43,16 +41,7 @@ app.include_router(ur.router)
 app.include_router(cr.router)
 app.include_router(ac.router)
 app.include_router(swr.router)
-
-
-@limiter.limit("3/hour")
-@app.post("/resend-verification")
-async def resend_verification_email(request: Request, is_auth: bool = Depends(auth_dependency)):
-    user = json.loads(db.user_manager.get_user_data_by_id(from_jwt(str(request.cookies.get("authenticate")))))
-    m_link = f"http://localhost:8000/verify?id={user.get('id')}"
-    
-    if smtp_client.send_verification_email(user.get('email'), m_link): return Response(status_code=200)
-    else: return Response(status_code=400)
+app.include_router(air.router)
 
 
 class AuthData(BaseModel):
