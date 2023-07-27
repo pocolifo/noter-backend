@@ -2,8 +2,12 @@ from fastapi import APIRouter, HTTPException, Header, Request, Response
 import stripe
 import stripe.error
 
-from noterdb import User
-from main import db
+from backend.tables import User
+from backend.globals import CONN_LINK
+from backend.noterdb import DB
+
+db = DB(CONN_LINK())
+db.connect()
 
 
 endpoint_secret = 'whsec_2df4dd6d1ca517669d994b2681c4f30751c523b79a8040cc863b161139108432'

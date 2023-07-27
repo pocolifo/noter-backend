@@ -1,16 +1,18 @@
-from fastapi import APIRouter, Depends
-from starlette.requests import Request
-from starlette.responses import Response
-from fastapi.responses import JSONResponse
-from starlette.background import BackgroundTask
+import json
 from typing import Union
 
-from noterdb import *
-from smtputil import Client
-from globals import *
-from make_objects import *
-from utils import *
-from dependency import auth_dependency
+from fastapi import APIRouter, Depends
+from fastapi.responses import JSONResponse
+from starlette.requests import Request
+from starlette.responses import Response
+from starlette.background import BackgroundTask
+
+from backend.noterdb import DB
+from backend.smtputil import Client
+from backend.globals import CONN_LINK, SMTP_LOGIN
+from backend.make_objects import make_folder, make_note, make_user
+from backend.utils import hash_password, to_jwt
+from backend.dependency import auth_dependency
 
 db = DB(CONN_LINK())
 db.connect()
