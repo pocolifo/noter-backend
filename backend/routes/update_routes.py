@@ -1,12 +1,13 @@
+import json
+from typing import Union
+
 from fastapi import APIRouter, Depends
 from starlette.requests import Request
 from starlette.responses import Response
-from fastapi.responses import JSONResponse
-from typing import Union
 
-from noterdb import *
-from globals import *
-from dependency import auth_dependency
+from backend.noterdb import DB
+from backend.globals import CONN_LINK
+from backend.dependency import auth_dependency
 
 db = DB(CONN_LINK())
 db.connect()

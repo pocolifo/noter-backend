@@ -1,13 +1,11 @@
-import os
 from uuid import uuid4
 from datetime import datetime
 from starlette.requests import Request
-from json import dumps as jsondumps
-
-from noterdb import *
-from globals import *
-from utils import *
 import stripe
+
+from backend.noterdb import DB
+from backend.globals import CONN_LINK
+from backend.utils import from_jwt
 
 db = DB(CONN_LINK())
 db.connect()

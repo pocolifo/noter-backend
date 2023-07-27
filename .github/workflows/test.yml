@@ -1,0 +1,64 @@
+# modified from https://stackoverflow.com/a/61721608/19506738 and https://github.com/alehpineda/fastapi_test/blob/master/.github/workflows/cicd.yml
+name: Test
+
+on:
+  push:
+    paths-ignore: '**.md'
+  pull_request:
+    paths-ignore: '**.md'
+
+env:
+  SQLALCHEMY_URL: postgresql://postgres:postgres@localhost:5432/postgres
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: postgres        
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        # Wait for Postgres to start
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.10'
+        
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      
+      - name: Migrate database
+        run: alembic upgrade head
+        working-directory: backend/
+      
+      - name: Test
+        run: pytest
+  
+  security:
+    needs: test
+    runs-on: ubuntu-latest
+    name: Check security
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Run PyCharm Security
+        uses: tonybaloney/pycharm-security@master
+        with:
+          path: backend/
+          fail_on_warnings: yes

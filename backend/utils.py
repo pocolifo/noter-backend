@@ -1,7 +1,9 @@
 from datetime import datetime
 from random import randint
-from globals import *
-import argon2, jwt
+import argon2
+import jwt
+
+from backend.globals import JWT_SECRET
 
 ph = argon2.PasswordHasher()
 

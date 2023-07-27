@@ -1,16 +1,17 @@
+import json
+from typing import Union
+
 from fastapi import APIRouter, Depends
 from starlette.requests import Request
 from starlette.responses import Response
-from fastapi.responses import JSONResponse
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import Limiter
 from slowapi.util import get_remote_address
-from typing import Union
 
-from noterdb import *
-from globals import *
-from utils import *
-from dependency import auth_dependency
-from smtputil import Client
+from backend.noterdb import DB
+from backend.globals import CONN_LINK, SMTP_LOGIN
+from backend.utils import randint_n, hash_password
+from backend.dependency import auth_dependency
+from backend.smtputil import Client
 
 db = DB(CONN_LINK())
 db.connect()

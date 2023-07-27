@@ -1,15 +1,13 @@
 import json
 
-from sqlalchemy import func, Enum, text, Column, Integer, String, ARRAY, JSON, Boolean, ForeignKey
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm.attributes import flag_modified
 
 from datetime import datetime
 from starlette.requests import Request
 
-from utils import *
-from tables import User, Note, Folder
+from backend.utils import from_jwt
+from backend.tables import User, Note, Folder
 
 class BaseManager:
     def __init__(self, session):

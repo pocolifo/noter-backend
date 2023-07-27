@@ -1,24 +1,22 @@
-from fastapi import FastAPI, Depends, HTTPException
+import json
+
+from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.requests import Request
-from starlette.responses import Response
 from pydantic import BaseModel
-from typing import Union
 
-from make_objects import *
-from utils import *
-from globals import *
-from noterdb import DB
-from smtputil import Client
-from dependency import auth_dependency
+from backend.globals import CONN_LINK, SMTP_LOGIN, CORS_ALLOW_ORIGINS, API_VERSION
+from backend.noterdb import DB
+from backend.smtputil import Client
+from backend.utils import verify_hash, to_jwt, get_current_isodate, from_jwt
 
-import routes.retrieve_routes as rr
-import routes.update_routes as ur
-import routes.create_routes as cr
-import routes.account_routes as ac
-import routes.stripe_webhook_routes as swr
-import gptroutes.ai_routes as air
+import backend.routes.retrieve_routes as rr
+import backend.routes.update_routes as ur
+import backend.routes.create_routes as cr
+import backend.routes.account_routes as ac
+import backend.routes.stripe_webhook_routes as swr
+import backend.gptroutes.ai_routes as air
 
 db = None
 smtp_client = None
