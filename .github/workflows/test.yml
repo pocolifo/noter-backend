@@ -39,11 +39,15 @@ jobs:
         with:
           python-version: '3.10'
         
-      - name: Initialize project
-        run: make init
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      
+      - name: Migrate database
+        run: alembic upgrade head
+        working-directory: backend/
       
       - name: Test
-        run: make test
+        run: pytest
   
   security:
     needs: test
