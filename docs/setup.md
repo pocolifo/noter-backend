@@ -32,6 +32,16 @@
 | JWT_SECRET             | The JSON web token secret key                                |
 | CORS_ALLOW_ORIGINS     | The origins to set in the Access-Control-Allow-Origin header |
 
+### 2.2 Environment variable precedence
+
+1. `.env` file
+2. environment variables
+3. `.env.default` file
+
+This means that variables in `.env` will be used before system environment variables and then variables set in `.env.default`.
+
+In other words, variables in `.env` are most important and variables in `.env.default` are least important.
+
 ## 3. Makefile
 
 - Initialize your development environment: `make init`.

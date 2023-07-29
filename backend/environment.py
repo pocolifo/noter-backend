@@ -26,6 +26,9 @@ def load_file(file: str):
 def load_all(env_file: str = os.path.join(repo_root, '.env'), default_env_file: str = os.path.join(repo_root, '.env.default')):
     env = load_file(default_env_file)
 
+    for key, val in os.environ.items():
+        env[key] = val
+
     if os.path.exists(env_file):
         for key, val in load_file(env_file).items():
             env[key] = val
