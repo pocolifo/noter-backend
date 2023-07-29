@@ -8,16 +8,10 @@ from starlette.requests import Request
 from starlette.responses import Response
 import openai
 
-from backend.noterdb import DB
-from backend.globals import CONN_LINK
+from backend.noterdb import db
 from backend.dependency import auth_dependency
 
-db = DB(CONN_LINK())
-db.connect()
-
 router = APIRouter()
-
-openai.api_key = os.environ.get('OPENAI_SECRET_KEY')
 
 SUMMARIZE_PROMPT = "Summarize the following text, get right into the summary. Do not use first person pronouns."
 BULLET_PROMPT = "Summarize the following text into a markdown style list of bullet points. Do not use first person pronouns."

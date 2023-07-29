@@ -1,4 +1,9 @@
+from backend.environment import load_all, append_to_environ
+append_to_environ(load_all())
+
 import json
+import os
+import stripe
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
@@ -6,9 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from pydantic import BaseModel
 
-from backend.globals import CONN_LINK, SMTP_LOGIN, CORS_ALLOW_ORIGINS, API_VERSION
-from backend.noterdb import DB
-from backend.smtputil import Client
+from backend.noterdb import db
 from backend.utils import verify_hash, to_jwt, get_current_isodate, from_jwt
 
 import backend.routes.retrieve_routes as rr
@@ -18,21 +21,12 @@ import backend.routes.account_routes as ac
 import backend.routes.stripe_webhook_routes as swr
 import backend.gptroutes.ai_routes as air
 
-db = None
-smtp_client = None
-def app_init():
-    global db, smtp_client
-    db = DB(CONN_LINK())
-    db.connect()
-    
-    smtp_login = SMTP_LOGIN()
-    smtp_client = Client(smtp_login.get("server"), smtp_login.get("port"), smtp_login.get("email"), smtp_login.get("password"))
-    smtp_client.connect()
-    return FastAPI()
+# OpenAI API key is automatically set ot the OPENAI_API_KEY environment variable
+stripe.api_key = os.environ['STRIPE_API_KEY']  # require it
 
-app = app_init()
+app = FastAPI(title='Noter API', description='Backend API for Noter')
 
-app.add_middleware(CORSMiddleware, allow_origins=CORS_ALLOW_ORIGINS(), allow_methods=['*'], allow_headers=['*'], allow_credentials=True)
+app.add_middleware(CORSMiddleware, allow_origins=os.environ['CORS_ALLOW_ORIGINS'].split(','), allow_methods=['*'], allow_headers=['*'], allow_credentials=True)
 
 app.include_router(rr.router)
 app.include_router(ur.router)
@@ -64,7 +58,7 @@ async def authenticate(request: Request, data: AuthData):
 @app.get("/")
 async def root(request: Request):
     if not db.is_authenticated(request):
-        return JSONResponse(status_code=200, content={"apiVersion": API_VERSION(), "user":None})
+        return JSONResponse(status_code=200, content={"apiVersion": 1.1, "user":None})
         
     udata = json.loads(db.user_manager.get_user_data_by_id(from_jwt(str(request.cookies.get("authenticate")))))
     udata.pop("password")

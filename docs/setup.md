@@ -19,17 +19,18 @@
 
 ### 2.1 All environment variables
 
-| Variable           | Value                                                        |
-|--------------------|--------------------------------------------------------------|
-| STRIPE_API_KEY     | The Stripe secret key                                        |
-| OPENAI_API_KEY     | The OpenAI key to use for AI endpoints                       |
-| SQLALCHEMY_URL     | The database connection URL for Postgres                     |
-| SMTP_SERVER        | The SMTP server host                                         |
-| SMTP_PORT          | The SMTP port of the server                                  |
-| SMTP_ADDRESS       | The email to use on the SMTP server                          |
-| SMTP_PASSWORD      | The password for the SMTP user                               |
-| JWT_SECRET         | The JSON web token secret key                                |
-| CORS_ALLOW_ORIGINS | The origins to set in the Access-Control-Allow-Origin header |
+| Variable               | Value                                                        |
+|------------------------|--------------------------------------------------------------|
+| STRIPE_API_KEY         | The Stripe secret key                                        |
+| STRIPE_ENDPOINT_SECRET | The Stripe endpoint secret key for Stripe webhooks           |
+| OPENAI_API_KEY         | The OpenAI key to use for AI endpoints                       |
+| SQLALCHEMY_URL         | The database connection URL for Postgres                     |
+| SMTP_SERVER            | The SMTP server host                                         |
+| SMTP_PORT              | The SMTP port of the server                                  |
+| SMTP_ADDRESS           | The email to use on the SMTP server                          |
+| SMTP_PASSWORD          | The password for the SMTP user                               |
+| JWT_SECRET             | The JSON web token secret key                                |
+| CORS_ALLOW_ORIGINS     | The origins to set in the Access-Control-Allow-Origin header |
 
 ## 3. Makefile
 

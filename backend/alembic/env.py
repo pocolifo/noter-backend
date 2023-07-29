@@ -1,3 +1,6 @@
+from environment import append_to_environ, load_all
+append_to_environ(load_all())
+
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config

@@ -9,7 +9,7 @@ sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "..")))
 from backend.tables import User, Note, Folder
 
 Base = declarative_base()
-engine = create_engine("postgresql://postgres:ilovebigblackcock69@localhost/postgres2")
+engine = create_engine("postgresql://postgres:example@localhost/postgres")
 
 Base.metadata.create_all(engine)
 app = FastAPI()

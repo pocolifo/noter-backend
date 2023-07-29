@@ -1,4 +1,5 @@
 import json
+import os
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -250,5 +251,6 @@ class DB:
             folder.last_edited = datetime.now().isoformat()
 
         self.session.commit()
-    
-        
+
+db = DB(os.environ['SQLALCHEMY_URL'])
+db.connect()

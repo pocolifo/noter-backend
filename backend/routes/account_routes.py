@@ -7,18 +7,10 @@ from starlette.responses import Response
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
-from backend.noterdb import DB
-from backend.globals import CONN_LINK, SMTP_LOGIN
+from backend.noterdb import db
+from backend.smtputil import smtp_client
 from backend.utils import randint_n, hash_password
 from backend.dependency import auth_dependency
-from backend.smtputil import Client
-
-db = DB(CONN_LINK())
-db.connect()
-
-smtp_login = SMTP_LOGIN()
-smtp_client = Client(smtp_login.get("server"), smtp_login.get("port"), smtp_login.get("email"), smtp_login.get("password"))
-smtp_client.connect()
 
 limiter = Limiter(key_func=get_remote_address)
 router = APIRouter()

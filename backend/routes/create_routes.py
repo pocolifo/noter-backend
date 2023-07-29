@@ -7,19 +7,11 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.background import BackgroundTask
 
-from backend.noterdb import DB
-from backend.smtputil import Client
-from backend.globals import CONN_LINK, SMTP_LOGIN
+from backend.noterdb import db
+from backend.smtputil import smtp_client
 from backend.make_objects import make_folder, make_note, make_user
 from backend.utils import hash_password, to_jwt
 from backend.dependency import auth_dependency
-
-db = DB(CONN_LINK())
-db.connect()
-
-smtp_login = SMTP_LOGIN()
-smtp_client = Client(smtp_login.get("server"), smtp_login.get("port"), smtp_login.get("email"), smtp_login.get("password"))
-smtp_client.connect()
 
 router = APIRouter()
 
