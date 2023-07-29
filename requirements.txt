@@ -4,6 +4,7 @@ openai
 pydantic
 SQLAlchemy
 starlette
+starlette-admin
 uvicorn
 alembic
 argon2-cffi
