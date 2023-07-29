@@ -1,16 +1,10 @@
+import os
 from fastapi import APIRouter, HTTPException, Header, Request, Response
 import stripe
 import stripe.error
 
 from backend.tables import User
-from backend.globals import CONN_LINK
-from backend.noterdb import DB
-
-db = DB(CONN_LINK())
-db.connect()
-
-
-endpoint_secret = 'whsec_2df4dd6d1ca517669d994b2681c4f30751c523b79a8040cc863b161139108432'
+from backend.noterdb import db
 
 router = APIRouter()
 
@@ -22,7 +16,7 @@ async def stripe_webhook(request: Request, stripe_signature: str = Header(None))
         event = stripe.Webhook.construct_event(
             payload=data,
             sig_header=stripe_signature,
-            secret=endpoint_secret
+            secret=os.environ['STRIPE_ENDPOINT_SECRET']
         )
     except stripe.error.SignatureVerificationError as e:
         raise HTTPException(status_code=500, detail=str(e))

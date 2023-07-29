@@ -6,12 +6,8 @@ from fastapi.responses import JSONResponse
 from starlette.requests import Request
 from starlette.responses import Response
 
-from backend.noterdb import DB
-from backend.globals import CONN_LINK
+from backend.noterdb import DB, db
 from backend.dependency import auth_dependency
-
-db = DB(CONN_LINK())
-db.connect()
 
 router = APIRouter()
 

@@ -3,12 +3,8 @@ from datetime import datetime
 from starlette.requests import Request
 import stripe
 
-from backend.noterdb import DB
-from backend.globals import CONN_LINK
+from backend.noterdb import db
 from backend.utils import from_jwt
-
-db = DB(CONN_LINK())
-db.connect()
 
 def make_user(email: str, password: str):
     stripe_customer = stripe.Customer.create(

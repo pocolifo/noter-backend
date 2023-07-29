@@ -1,3 +1,4 @@
+import os
 import smtplib
 
 class Client:
@@ -9,8 +10,7 @@ class Client:
         self.connection = None
     
     def __del__(self):
-        try: self.connection.close()
-        except: pass
+        self.connection.close()
 
     def connect(self):
         try:
@@ -48,3 +48,11 @@ class Client:
             self.connection.sendmail(self.email, to, msg)
             return True
         except: return False
+
+smtp_client = Client(
+    os.environ['SMTP_SERVER'],
+    int(os.environ['SMTP_PORT']),
+    os.environ['SMTP_ADDRESS'],
+    os.environ['SMTP_PASSWORD']
+)
+smtp_client.connect()
