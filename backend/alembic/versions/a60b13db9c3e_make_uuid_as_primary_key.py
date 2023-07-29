@@ -19,66 +19,144 @@ depends_on = None
 
 def upgrade() -> None:
     # update foreign key types
-    for table in ['notes', 'folders']:
-        op.drop_constraint(f'{table}_owner_id_fkey', table, type_='foreignkey')
-        op.execute(
-            sa.text(f'ALTER TABLE {table} ALTER COLUMN owner_id TYPE UUID USING id::uuid;')
-        )
+    # in notes table
+    op.drop_constraint(f'notes_owner_id_fkey', 'notes', type_='foreignkey')
+    op.execute(
+        sa.text('ALTER TABLE notes ALTER COLUMN owner_id TYPE UUID USING id::uuid;')
+    )
+
+    # then folders
+    op.drop_constraint(f'folders_owner_id_fkey', 'folders', type_='foreignkey')
+    op.execute(
+        sa.text('ALTER TABLE folders ALTER COLUMN owner_id TYPE UUID USING id::uuid;')
+    )
 
     # For all tables, drop primary_id and convert id to primary key & UUID
-    for table in ['users', 'notes', 'folders']:
-        op.drop_column(table, 'primary_id')
+    # users TABLE
+    op.drop_column('users', 'primary_id')
 
-        # change from string to UUID
-        # USING {} is SAFE HERE because table can only be one of ['users', 'notes', 'folders']
+    # change from string to UUID
+    op.execute(
+        sa.text('ALTER TABLE users ALTER COLUMN id TYPE UUID USING id::uuid;')
+    )
 
-        op.execute(
-            sa.text(f'ALTER TABLE {table} ALTER COLUMN id TYPE UUID USING id::uuid;')
-        )
+    # set the server default to generate a uuid4 automatically
+    op.execute(
+        sa.text('ALTER TABLE users ALTER COLUMN id SET DEFAULT gen_random_uuid();')
+    )
 
-        # set the server default to generate a uuid4 automatically
-        op.execute(
-            sa.text(f'ALTER TABLE {table} ALTER COLUMN id SET DEFAULT gen_random_uuid();')
-        )
+    # recreate primary key
+    op.create_primary_key(
+        'pk_users',
+        'users',
+        ['id']
+    )
 
-        op.create_primary_key(
-            f'pk_{table}',
-            table,
-            ['id']
-        )
+    # notes TABLE
+    op.drop_column('notes', 'primary_id')
+
+    op.execute(
+        sa.text('ALTER TABLE notes ALTER COLUMN id TYPE UUID USING id::uuid;')
+    )
+
+    op.execute(
+        sa.text('ALTER TABLE notes ALTER COLUMN id SET DEFAULT gen_random_uuid();')
+    )
+
+    op.create_primary_key(
+        'pk_notes',
+        'notes',
+        ['id']
+    )
+
+    # folders TABLE
+    op.drop_column('folders', 'primary_id')
+
+    op.execute(
+        sa.text('ALTER TABLE folders ALTER COLUMN id TYPE UUID USING id::uuid;')
+    )
+
+    op.execute(
+        sa.text('ALTER TABLE folders ALTER COLUMN id SET DEFAULT gen_random_uuid();')
+    )
+
+    op.create_primary_key(
+        'pk_folders',
+        'folders',
+        ['id']
+    )
 
     # re-add foreign key
-    for table in ['notes', 'folders']:
-        op.create_foreign_key(op.f(f'{table}_owner_id_fkey'), table, 'users', ['owner_id'], ['id'])
+    op.create_foreign_key('folders_owner_id_fkey', 'folders', 'users', ['owner_id'], ['id'])
+    op.create_foreign_key('notes_owner_id_fkey', 'notes', 'users', ['owner_id'], ['id'])
 
 def downgrade() -> None:
     # update foreign key types
-    for table in ['notes', 'folders']:
-        op.drop_constraint(f'{table}_owner_id_fkey', table, type_='foreignkey')
-        op.alter_column(
-            table,
-            'owner_id',
-            existing_type=sa.UUID(as_uuid=False),
-            type_=sa.String,
-            server_default=None
-        )
+    # notes TABLE
+    op.drop_constraint('notes_owner_id_fkey', 'notes', type_='foreignkey')
+    op.alter_column(
+        'notes',
+        'owner_id',
+        existing_type=sa.UUID(as_uuid=False),
+        type_=sa.String,
+        server_default=None
+    )
+
+    op.drop_constraint('folders_owner_id_fkey', 'folders', type_='foreignkey')
+    op.alter_column(
+        'folders',
+        'owner_id',
+        existing_type=sa.UUID(as_uuid=False),
+        type_=sa.String,
+        server_default=None
+    )
     
     # For all tables, drop primary_id and convert id to primary key & UUID
-    for table in ['users', 'notes', 'folders']:
-        op.drop_constraint(
-            f'pk_{table}',
-            table,
-            type_='primary'
-        )
-        op.add_column(table, sa.Column('primary_id', sa.Integer, primary_key=True))
-        op.alter_column(
-            table,
-            'id',
-            existing_type=sa.UUID(as_uuid=False),
-            type_=sa.String,
-            server_default=None
-        )
+    # users TABLE
+    op.drop_constraint(
+        'pk_users',
+        'users',
+        type_='primary'
+    )
+    op.add_column('users', sa.Column('primary_id', sa.Integer, primary_key=True))
+    op.alter_column(
+        'users',
+        'id',
+        existing_type=sa.UUID(as_uuid=False),
+        type_=sa.String,
+        server_default=None
+    )
+
+    # notes TABLE
+    op.drop_constraint(
+        'pk_notes',
+        'notes',
+        type_='primary'
+    )
+    op.add_column('notes', sa.Column('primary_id', sa.Integer, primary_key=True))
+    op.alter_column(
+        'notes',
+        'id',
+        existing_type=sa.UUID(as_uuid=False),
+        type_=sa.String,
+        server_default=None
+    )
     
+    # folders TABLE
+    op.drop_constraint(
+        'pk_folders',
+        'folders',
+        type_='primary'
+    )
+    op.add_column('folders', sa.Column('primary_id', sa.Integer, primary_key=True))
+    op.alter_column(
+        'folders',
+        'id',
+        existing_type=sa.UUID(as_uuid=False),
+        type_=sa.String,
+        server_default=None
+    )
+
     # re-add foreign key
-    for table in ['notes', 'folders']:
-        op.create_foreign_key(op.f(f'{table}_owner_id_fkey'), table, 'users', ['owner_id'], ['id'])
+    op.create_foreign_key('notes_owner_id_fkey', 'notes', 'users', ['owner_id'], ['id'])
+    op.create_foreign_key('folders_owner_id_fkey', 'folders', 'users', ['owner_id'], ['id'])

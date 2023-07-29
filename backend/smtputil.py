@@ -10,8 +10,7 @@ class Client:
         self.connection = None
     
     def __del__(self):
-        try: self.connection.close()
-        except: pass
+        self.connection.close()
 
     def connect(self):
         try:
