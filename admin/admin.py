@@ -8,8 +8,11 @@ from fastapi import FastAPI
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "..")))
 from backend.tables import User, Note, Folder
 
+from adminglobalview import AdminGlobalView, Global
+
+
 Base = declarative_base()
-engine = create_engine("postgresql://postgres:example@localhost/postgres")
+engine = create_engine(os.environ['SQLALCHEMY_URL'])
 
 Base.metadata.create_all(engine)
 app = FastAPI()
@@ -25,34 +28,6 @@ admin.mount_to(app)
 admin.add_view(ModelView(Folder))
 admin.mount_to(app)
 
+admin.add_view(AdminGlobalView(Global))
+admin.mount_to(app)
 
-"""
-class BaseManager:
-    def __init__(self, session):
-        self.session = session
-
-class Administrator:
-    def __init__(self, conn_link:str):
-        self.Session = None
-        self.engine = None
-        self.session = None
-        
-        self.item_admin = None
-        self.user_admin = None
-        
-        self.conn_link = conn_link
-        
-    def connect(self):
-        try:
-            self.engine = create_engine(self.conn_link)
-            self.Session = sessionmaker(bind=self.engine)
-            self.session = self.Session()
-            
-            self.item_admin = ItemAdmin(self.session)
-            self.user_admin = UserAdmin(self.session)
-            return True
-            
-        except Exception:
-            return False
-"""
-    

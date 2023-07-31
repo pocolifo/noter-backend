@@ -5,7 +5,7 @@ import json
 import os
 import stripe
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.requests import Request
@@ -13,6 +13,7 @@ from pydantic import BaseModel
 
 from backend.noterdb import db
 from backend.utils import verify_hash, to_jwt, get_current_isodate, from_jwt
+from backend.dependency import global_checks
 
 import backend.routes.retrieve_routes as rr
 import backend.routes.update_routes as ur
@@ -24,7 +25,7 @@ import backend.gptroutes.ai_routes as air
 # OpenAI API key is automatically set ot the OPENAI_API_KEY environment variable
 stripe.api_key = os.environ['STRIPE_API_KEY']  # require it
 
-app = FastAPI(title='Noter API', description='Backend API for Noter')
+app = FastAPI(title='Noter API', description='Backend API for Noter', dependencies=[Depends(global_checks)])
 
 app.add_middleware(CORSMiddleware, allow_origins=os.environ['CORS_ALLOW_ORIGINS'].split(','), allow_methods=['*'], allow_headers=['*'], allow_credentials=True)
 

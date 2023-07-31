@@ -1,12 +1,10 @@
-import os
-import json
+import json, openai
 from typing import Union
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from starlette.requests import Request
 from starlette.responses import Response
-import openai
 
 from backend.noterdb import db
 from backend.dependency import auth_dependency
