@@ -12,7 +12,7 @@ from starlette.requests import Request
 from pydantic import BaseModel
 
 from backend.noterdb import db
-from backend.utils import verify_hash, to_jwt, get_current_isodate, from_jwt
+from backend.utils import verify_hash, to_jwt, get_current_isodate, from_jwt, clean_udata
 from backend.dependency import global_checks
 
 import backend.routes.retrieve_routes as rr
@@ -61,8 +61,8 @@ async def root(request: Request):
     if not db.is_authenticated(request):
         return JSONResponse(status_code=200, content={"apiVersion": 1.1, "user":None})
         
-    udata = json.loads(db.user_manager.get_user_data_by_id(from_jwt(str(request.cookies.get("authenticate")))))
-    udata.pop("password")
+    udata = clean_udata(json.loads(db.user_manager.get_user_data_by_id(from_jwt(str(request.cookies.get("authenticate"))))))
+    
     return JSONResponse(status_code=200, content=(udata)) # add API version to response content
 
 

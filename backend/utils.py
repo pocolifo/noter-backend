@@ -33,3 +33,9 @@ def randint_n(d):
     range_end = (10**d)-1
     return randint(range_start, range_end)
     
+def clean_udata(udata:dict):
+    udata.pop("password")
+    udata.pop("stripe_id")
+    udata.pop("verification_code")
+    return udata
+    

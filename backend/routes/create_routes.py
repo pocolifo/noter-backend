@@ -10,7 +10,7 @@ from starlette.background import BackgroundTask
 from backend.noterdb import db
 from backend.smtputil import smtp_client
 from backend.make_objects import make_folder, make_note, make_user
-from backend.utils import hash_password, to_jwt
+from backend.utils import hash_password, to_jwt, clean_udata
 from backend.dependency import auth_dependency
 
 router = APIRouter()
@@ -23,7 +23,7 @@ async def create_user(request: Request):
     if db.user_manager.get_user_by_email(userinfo["email"]) is None:
         user = make_user(userinfo["email"], hash_password(userinfo["password"]))
         db.user_manager.insert_user(user)
-        user.pop("password")
+        user = clean_udata(user)
         
         m_link = f"http://localhost:8000/verify?id={user.get('id')}"
         task = BackgroundTask(smtp_client.send_verification_email, to=user.get("email"), link=m_link)
