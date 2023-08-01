@@ -8,7 +8,7 @@ from fastapi import FastAPI
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "..")))
 from backend.tables import User, Note, Folder
 
-from adminglobalview import AdminGlobalView, Global
+from admin.adminglobalview import AdminGlobalView, Global
 
 
 Base = declarative_base()

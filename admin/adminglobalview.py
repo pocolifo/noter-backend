@@ -1,10 +1,13 @@
+from datetime import datetime
+import hashlib
 import os
-from sqlalchemy.orm import declarative_base
-from sqlalchemy import Column, Boolean, Integer
+import httpx
 from starlette_admin.contrib.sqla import ModelView
 from starlette.requests import Request
-from starlette.responses import Response
 from abc import abstractmethod
+
+
+AUTHORIZATION_STRING = os.getenv('AUTHORIZATION_STRING', 'secret')
 
 from typing import (
     Any,
@@ -19,30 +22,14 @@ from typing import (
     Union,
 )
 
-import redis
-rdb = redis.Redis(host=os.environ['REDIS_HOST'], port=os.environ['REDIS_PORT'], username=os.environ['REDIS_USER'], password=os.environ['REDIS_PASS'], decode_responses=True)
-
-class Global(declarative_base()):
-    __tablename__ = 'admin'
-
-    pk = Column(Integer, primary_key=True)
-    global_api_access = Column(Boolean)
-    ai_endpoints = Column(Boolean, default=True)
-    item_creation = Column(Boolean, default=True)
-    user_creation = Column(Boolean, default=True)
-
 class AdminGlobalView(ModelView):
     def can_create(self, request: Request) -> bool: return False
     def can_edit(self, request: Request) -> bool: return True
     def can_delete(self, request: Request) -> bool: return False
     
     def current_object(self):
-        global_api_access = bool(int(rdb.get("global_api_access")))
-        ai_endpoints = bool(int(rdb.get("ai_endpoints")))
-        item_creation = bool(int(rdb.get("item_creation")))
-        user_creation = bool(int(rdb.get("user_creation")))
-        
-        return Global(pk=0, global_api_access=global_api_access, ai_endpoints=ai_endpoints, item_creation=item_creation, user_creation=user_creation)
+        response = httpx.get(f"{os.environ['META_SERVER_URL']}/access-flags")
+        return response.json()
         
     @abstractmethod
     async def find_all(
@@ -68,9 +55,22 @@ class AdminGlobalView(ModelView):
         
     @abstractmethod
     async def edit(self, request: Request, pk: Any, data: Dict[str, Any]) -> Any:
+        obj = self.current_object()
+
         for key, value in data.items():
-            rdb.set(key, int(value))
-        return self.current_object()
+            obj[key] = bool(value)
+
+        # Key algorithm as specified in the meta project
+        now = datetime.now()
+        salt = hashlib.sha512(f'{now.year}{now.month}{now.day}{now.hour}{now.minute}').hexdigest()
+        expected_string = f'{AUTHORIZATION_STRING}{salt}'
+
+        httpx.put(f"{os.environ['META_SERVER_URL']}/access-flags", json=obj, headers={
+            'Authorization': expected_string
+        })
+
+        return obj
         
     @abstractmethod
-    async def find_by_pk(self, request: Request, pk: Any) -> Any: return self.current_object() # Only 1 object to find
+    async def find_by_pk(self, request: Request, pk: Any) -> Any:
+        return self.current_object() # Only 1 object to find

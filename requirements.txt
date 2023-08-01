@@ -3,7 +3,6 @@ slowapi
 openai
 pydantic
 SQLAlchemy
-redis
 starlette
 starlette-admin
 uvicorn

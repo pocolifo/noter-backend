@@ -50,7 +50,7 @@ def gpt35_turbo(sysprompt: str, userprompt: str):
 
 
 @router.post("/ai/generate/summary")
-async def generate_summary(request: Request, id:str, is_auth: Union[bool, dict] = Depends(auth_dependency)):
+async def generate_summary(request: Request, id:str, is_auth: Union[bool, dict] = Depends(auth_dependency), _ = Depends(require)):
     sentences = ""
     
     note = db.note_manager.get_note_by_id(request, id)

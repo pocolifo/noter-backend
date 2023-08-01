@@ -13,7 +13,8 @@ from pydantic import BaseModel
 
 from backend.noterdb import db
 from backend.utils import verify_hash, to_jwt, get_current_isodate, from_jwt, clean_udata
-from backend.dependency import global_checks
+from backend.dependency import require_access_flag
+from backend.models.requests import UserCredentialsRequest
 
 import backend.routes.retrieve_routes as rr
 import backend.routes.update_routes as ur
@@ -37,14 +38,18 @@ app.include_router(swr.router)
 app.include_router(air.router)
 
 
-class AuthData(BaseModel):
-    email: str
-    password: str
+@app.middleware('http')
+async def require_global_api_access(request: Request, call_next):
+    require_access_flag('api_enabled')
+    return await call_next(request)
+
 
 @app.post("/authenticate")
-async def authenticate(request: Request, data: AuthData):
+async def authenticate(data: UserCredentialsRequest):
     u = db.user_manager.get_user_by_email(data.email)
-    if u is None: return {"authenticated": False}
+
+    if not u:
+        return {"authenticated": False}
     
     if u["email"] == data.email and verify_hash(u["password"], data.password):
         response = JSONResponse(status_code=200, content={"authenticated": True})
