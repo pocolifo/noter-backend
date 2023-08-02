@@ -147,6 +147,7 @@ class FolderManager(BaseManager):
     def insert_folder(self, folder: dict):
         folder_obj = Folder(
             id=folder.get('id'),
+            type=folder.get('type'),
             name=folder.get('name'),
             path=folder.get('path'),
             last_edited=folder.get('last_edited'),
@@ -234,23 +235,39 @@ class DB:
         self.session.commit()
 
 
+    def update_folder(self, folder: Folder, old_path: list, new_path: list, new_name: str):
+        child_items = []
+        
+        folder.name = new_name
+        folder.path = new_path
+        folder.last_edited = datetime.now().isoformat()
+        
+        child_path = old_path + [folder.id]
+        child_items = child_items+self.session.query(Note).filter(Note.path == child_path).all() # Concatenate list NOT append list
+        child_items = child_items+self.session.query(Folder).filter(Folder.path == child_path).all()
+        
+        for item in child_items:
+            if item.type != "folder":
+                item.path = new_path + [folder.id]
+            elif item.type == "folder":
+                self.update_folder(item, item.path, (new_path + [folder.id]), item.name)
+
+        self.session.commit()
+
     def update_metadata_by_id(self, request: Request, id: str, new_name: str, new_path: list):
         user_id = from_jwt(str(request.cookies.get("authenticate")))
       
-        notes = self.session.query(Note).filter(Note.id == id, Note.owner_id == user_id).all()
-        folders = self.session.query(Folder).filter(Folder.id == id, Folder.owner_id == user_id).all()
-
-        for note in notes:
+        note = self.session.query(Note).filter(Note.id == id, Note.owner_id == user_id).first()
+        if note is not None:
             note.name = new_name
             note.path = new_path
             note.last_edited = datetime.now().isoformat()
+            self.session.commit()
+            return
+        
+        folder = self.session.query(Folder).filter(Folder.id == id, Folder.owner_id == user_id).first()
+        self.update_folder(folder, folder.path, new_path, new_name)
 
-        for folder in folders:
-            folder.name = new_name
-            folder.path = new_path
-            folder.last_edited = datetime.now().isoformat()
-
-        self.session.commit()
 
 db = DB(os.environ['SQLALCHEMY_URL'])
 db.connect()
