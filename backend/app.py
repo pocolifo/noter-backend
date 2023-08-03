@@ -1,6 +1,3 @@
-from backend.environment import load_all, append_to_environ
-append_to_environ(load_all())
-
 import json
 import os
 import stripe
@@ -13,7 +10,7 @@ from pydantic import BaseModel
 
 from backend.noterdb import db
 from backend.utils import verify_hash, to_jwt, get_current_isodate, from_jwt, clean_udata
-from backend.dependency import require_access_flag
+from backend.dependency import require_api_access
 from backend.models.requests import UserCredentialsRequest
 
 import backend.routes.retrieve_routes as rr
@@ -26,7 +23,13 @@ import backend.gptroutes.ai_routes as air
 # OpenAI API key is automatically set ot the OPENAI_API_KEY environment variable
 stripe.api_key = os.environ['STRIPE_API_KEY']  # require it
 
-app = FastAPI(title='Noter API', description='Backend API for Noter', dependencies=[Depends(global_checks)])
+app = FastAPI(
+    title='Noter API',
+    description='Backend API for Noter',
+    dependencies=[
+        Depends(require_api_access)
+    ]
+)
 
 app.add_middleware(CORSMiddleware, allow_origins=os.environ['CORS_ALLOW_ORIGINS'].split(','), allow_methods=['*'], allow_headers=['*'], allow_credentials=True)
 
@@ -35,13 +38,7 @@ app.include_router(ur.router)
 app.include_router(cr.router)
 app.include_router(ac.router)
 app.include_router(swr.router)
-app.include_router(air.router)
-
-
-@app.middleware('http')
-async def require_global_api_access(request: Request, call_next):
-    require_access_flag('api_enabled')
-    return await call_next(request)
+app.include_router(air.ai_router)
 
 
 @app.post("/authenticate")

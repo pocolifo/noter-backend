@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+
+{% block header %}
+<h2>Access Flags</h2>
+{% endblock %}
+
+{% block content %}
+{% if update != None %}
+    {% if update %}
+        <div class="alert alert-success" role="alert">
+            Successfully updated global access flags. Changes should take immediate affect.
+        </div>
+    {% else %}
+        <div class="alert alert-danger" role="alert">
+            Something went wrong.
+        </div>
+    {% endif %}
+{% endif %}
+
+<form method="post" enctype="multipart/form-data">
+    <div class="table-responsive">
+        <table class="table table-vcenter">
+            <thead>
+                <tr>
+                    <th>Flag</th>
+                    <th>State</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for flag, enabled in flags.items() %}
+                <tr>
+                    <td>
+                        <p for="{{ flag }}" class="form-check-label">{{ flag }}</p>
+                    </td>
+                    <td>
+                        <input name="flag__{{ flag }}" id="{{ flag }}" type="checkbox" {{ "checked" if enabled==True }} class="form-check-input" />
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <input type="password" name="authorization-secret" placeholder="Authorization secret" class="form-control" />
+
+    <button class="btn btn-success btn-block ms-2" type="submit">Save</button>
+</form>
+{% endblock %}

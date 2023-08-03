@@ -1,4 +1,3 @@
-import json
 from typing import Union
 
 from fastapi import APIRouter, Depends
@@ -6,18 +5,22 @@ from fastapi.responses import JSONResponse
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.background import BackgroundTask
-from backend.models.requests import CreateStudyGuideRequest, ItemMetadataRequest, UserCredentialsRequest
 
+from backend.models.requests import CreateStudyGuideRequest, ItemMetadataRequest, UserCredentialsRequest
 from backend.noterdb import db
 from backend.smtputil import smtp_client
 from backend.make_objects import make_folder, make_note, make_user
 from backend.utils import hash_password, to_jwt, clean_udata
-from backend.dependency import auth_dependency
+from backend.dependency import auth_dependency, require_user_creation_access, require_item_creation_access
 
 router = APIRouter()
 
 @router.post("/items/create/user")
-async def create_user(request: Request, creds: UserCredentialsRequest):
+async def create_user(
+    request: Request,
+    creds: UserCredentialsRequest,
+    _ = Depends(require_user_creation_access)
+):
     if db.user_manager.get_user_by_email(creds.email) is None:
         user = make_user(creds.email, hash_password(creds.password))
         db.user_manager.insert_user(user)
@@ -34,7 +37,12 @@ async def create_user(request: Request, creds: UserCredentialsRequest):
     
     
 @router.post("/items/create/note")
-async def create_note(request: Request, new_note: ItemMetadataRequest, is_auth: Union[bool, dict] = Depends(auth_dependency)):
+async def create_note(
+    request: Request,
+    new_note: ItemMetadataRequest,
+    is_auth: Union[bool, dict] = Depends(auth_dependency),
+    _ = Depends(require_item_creation_access)
+):
     if not db.folder_manager.does_path_exist(request, new_note.path):
         return Response(status_code=400)
     
@@ -44,7 +52,12 @@ async def create_note(request: Request, new_note: ItemMetadataRequest, is_auth: 
 
 
 @router.post("/items/create/studyguide")
-async def create_studyguide(request: Request, new_study_guide: CreateStudyGuideRequest, is_auth: Union[bool, dict] = Depends(auth_dependency)):
+async def create_studyguide(
+    request: Request,
+    new_study_guide: CreateStudyGuideRequest,
+    is_auth: Union[bool, dict] = Depends(auth_dependency),
+    _ = Depends(require_item_creation_access)
+):
     if not db.folder_manager.does_path_exist(request, new_study_guide.path):
         return Response(status_code=400)
     
@@ -54,7 +67,12 @@ async def create_studyguide(request: Request, new_study_guide: CreateStudyGuideR
 
 
 @router.post("/items/create/folder") 
-async def create_folder(request: Request, new_folder: ItemMetadataRequest, is_auth: Union[bool, dict] = Depends(auth_dependency)):
+async def create_folder(
+    request: Request,
+    new_folder: ItemMetadataRequest,
+    is_auth: Union[bool, dict] = Depends(auth_dependency),
+    _ = Depends(require_item_creation_access)
+):
     if not db.folder_manager.does_path_exist(request, new_folder.path):
         return Response(status_code=400)
     

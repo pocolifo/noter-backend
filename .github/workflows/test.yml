@@ -49,10 +49,10 @@ jobs:
       - name: Test
         run: pytest
   
-  security:
+  sast:
     needs: test
     runs-on: ubuntu-latest
-    name: Check security
+    name: SAST testing with PyCharm Security
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2

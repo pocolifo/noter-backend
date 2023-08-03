@@ -8,6 +8,7 @@ from typing import Union
 from backend.noterdb import DB, db
 from backend.utils import from_jwt
 
+
 async def auth_dependency(request: Request) -> Union[bool, dict]:
     user_id = from_jwt(str(request.cookies.get("authenticate")))
     
@@ -17,8 +18,23 @@ async def auth_dependency(request: Request) -> Union[bool, dict]:
     return json.loads(db.user_manager.get_user_data_by_id(user_id))
 
 async def require_access_flag(flag: str):
-    response = await httpx.get(f'{os.environ["META_SERVER"]}/access-flags')
-    flags = await response.json()
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f'{os.environ["META_SERVER"]}/access-flags')
+        flags = response.json()
 
-    if not flags[flag]:
-        raise HTTPException(status_code=503, detail='Service Unavailable')
+        if not flags[flag]:
+            raise HTTPException(status_code=503, detail='Service Unavailable')
+
+# TODO: better way to do this instead of having one function per access flag
+# TODO: better names
+async def require_api_access():
+    await require_access_flag('api_enabled')
+
+async def require_ai_access():
+    await require_access_flag('ai_endpoints_enabled')
+
+async def require_user_creation_access():
+    await require_access_flag('user_creation_endabled')
+
+async def require_item_creation_access():
+    await require_access_flag('item_creation_enabled')
