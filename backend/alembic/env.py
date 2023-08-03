@@ -1,5 +1,5 @@
-from environment import append_to_environ, load_all
-append_to_environ(load_all())
+from dotenv import load_dotenv
+load_dotenv()
 
 from logging.config import fileConfig
 
