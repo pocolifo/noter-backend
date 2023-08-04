@@ -1,5 +1,7 @@
 init:
 	pip install -r requirements.txt
+
+	touch .env
 	cp .env.default .env.tmp
 	cat .env >> .env.tmp
 	mv .env.tmp .env
