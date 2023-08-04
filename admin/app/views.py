@@ -7,6 +7,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.templating import Jinja2Templates
 from starlette_admin.views import CustomView
+from sqlalchemy.orm import Session
 from sqlalchemy.engine import Engine
 from sqlalchemy import select, func
 
@@ -14,10 +15,12 @@ from backend.tables import User, Note, Folder
 
 class HomeView(CustomView):
     async def render(self, request: Request, templates: Jinja2Templates) -> Response:
-        users_registered = request.state.session.query(func.count(User.id)).scalar()
-        users_with_access = request.state.session.query(func.count(User.has_noter_access == True)).scalar()
-        notes_created = request.state.session.query(func.count(Note.id)).scalar()
-        folders_created = request.state.session.query(func.count(Folder.id)).scalar()
+        session: Session = request.state.session
+
+        users_registered = session.query(func.count(User.id)).scalar()
+        users_with_access = session.query(func.count(User.has_noter_access)).filter(User.has_noter_access == True).scalar()
+        notes_created = session.query(func.count(Note.id)).scalar()
+        folders_created = session.query(func.count(Folder.id)).scalar()
 
         return templates.TemplateResponse(
             'HomeView.html.j2',
@@ -47,6 +50,7 @@ class HomeView(CustomView):
 
 class AccessFlagsView(CustomView):
     async def render(self, request: Request, templates: Jinja2Templates) -> Response:
+        # TODO: clean this up
         async with httpx.AsyncClient() as client:
             response = await client.get(f"{os.environ['META_SERVER_URL']}/access-flags")
             flags = response.json()

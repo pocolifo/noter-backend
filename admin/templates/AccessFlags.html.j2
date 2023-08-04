@@ -33,7 +33,9 @@
                         <p for="{{ flag }}" class="form-check-label">{{ flag }}</p>
                     </td>
                     <td>
-                        <input name="flag__{{ flag }}" id="{{ flag }}" type="checkbox" {{ "checked" if enabled==True }} class="form-check-input" />
+                        <label class="form-check form-switch">
+                            <input name="flag__{{ flag }}" id="{{ flag }}" type="checkbox" {{ "checked" if enabled==True }} class="field-boolean form-check-input" />
+                        </label>
                     </td>
                 </tr>
                 {% endfor %}
