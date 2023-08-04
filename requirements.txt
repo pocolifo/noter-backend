@@ -3,7 +3,6 @@ slowapi
 openai
 pydantic
 SQLAlchemy
-redis
 starlette
 starlette-admin
 uvicorn
@@ -15,3 +14,5 @@ slowapi
 stripe>=5.0.0
 pytest
 httpx
+python-dotenv
+pydantic[email]

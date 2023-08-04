@@ -39,20 +39,16 @@ jobs:
         with:
           python-version: '3.10'
         
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-      
-      - name: Migrate database
-        run: alembic upgrade head
-        working-directory: backend/
+      - name: Set up project
+        run: make init
       
       - name: Test
-        run: pytest
+        run: make test
   
-  security:
+  sast:
     needs: test
     runs-on: ubuntu-latest
-    name: Check security
+    name: SAST testing with PyCharm Security
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2

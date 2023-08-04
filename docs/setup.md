@@ -6,7 +6,7 @@
 - Python 3.8+ and PIP
 - Make
 
-## 2. Environment variables
+## 2.1 Environment variables
 
 - Set through a `.env` file or any other way to set an environment variable
 - You'll need to set the **`SQLALCHEMY_URL` variable to your database URL**
@@ -17,7 +17,7 @@
         - `port` is the integer port to connect to on the host. It defaults to `5432` if not set.
         - `database` is the database on the PostgreSQL server to use
 
-### 2.1 All environment variables
+### 2.2 Environment variables list
 
 | Variable               | Value                                                        |
 |------------------------|--------------------------------------------------------------|
@@ -31,16 +31,8 @@
 | SMTP_PASSWORD          | The password for the SMTP user                               |
 | JWT_SECRET             | The JSON web token secret key                                |
 | CORS_ALLOW_ORIGINS     | The origins to set in the Access-Control-Allow-Origin header |
-
-### 2.2 Environment variable precedence
-
-1. `.env` file
-2. environment variables
-3. `.env.default` file
-
-This means that variables in `.env` will be used before system environment variables and then variables set in `.env.default`.
-
-In other words, variables in `.env` are most important and variables in `.env.default` are least important.
+| META_SERVER_URL        | The URL to the hosted meta server                            |
+| AUTHORIZATION_SECRET   | The "password" to make write changes on the meta server      |
 
 ## 3. Makefile
 
