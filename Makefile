@@ -1,7 +1,7 @@
 init:
 	pip install -r requirements.txt
 	cd backend && alembic upgrade head
-	cat "\n" >> .env
+	echo "\n" >> .env
 	cat .env.default >> .env
 
 run:
