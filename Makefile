@@ -1,8 +1,8 @@
 init:
 	pip install -r requirements.txt
 	cd backend && alembic upgrade head
-	echo "\n" >> .env
-	cat .env.default >> .env
+
+	printf '%s\n%s\n' "$(cat .env.default)" "$(cat .env)" >.env
 
 run:
 	uvicorn backend:app --host 0.0.0.0 --port 8000 --env-file .env &
