@@ -1,26 +1,34 @@
 from datetime import datetime
 from random import randint
+from cryptography.fernet import Fernet
 import argon2
 import jwt
 import os
 
-
 ph = argon2.PasswordHasher()
+encryption_key = bytes(os.environ["FERNET_KEY"], encoding="utf-8")
 
 def get_current_isodate(): return str(datetime.now().isoformat())
 
-def to_jwt(id:str): # User ID -> Encrypted JSON
-    data = {"id":id}
-    secret = os.environ['JWT_SECRET']
-    return str(jwt.encode(data, secret, algorithm='HS256'))
+def to_jwt(user_id: str):
+    fernet = Fernet(encryption_key)
+    encrypted_user_id = fernet.encrypt(user_id.encode()).decode()
     
-def from_jwt(wt:str): # Encrypted JSON -> User ID
+    payload = {"encrypted_id": encrypted_user_id}
+    
+    secret = os.environ['JWT_SECRET']
+    return jwt.encode(payload, secret, algorithm='HS256')
+
+def from_jwt(token: str):
+    fernet = Fernet(encryption_key)
     try:
-        json_d = jwt.decode(wt, os.environ['JWT_SECRET'], algorithms=['HS256'])
-        return json_d.get("id")
-    except jwt.DecodeError as e:
+        json_d = jwt.decode(token, os.environ['JWT_SECRET'], algorithms=['HS256'])
+        encrypted_user_id = json_d.get("encrypted_id")
+        decrypted_user_id = fernet.decrypt(encrypted_user_id).decode()
+        return decrypted_user_id
+    except (jwt.DecodeError, InvalidTokenError) as e:
         print(f"Error decoding token: {str(e)} // Not authenticated?")
-        print(f"Token: {wt}")
+        print(f"Token: {token}")
         return None
 
 def hash_password(password): return ph.hash(password) #insert hash function in the future

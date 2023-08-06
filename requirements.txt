@@ -16,3 +16,4 @@ pytest
 httpx
 python-dotenv
 pydantic[email]
+cryptography
