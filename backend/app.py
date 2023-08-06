@@ -17,7 +17,7 @@ import backend.routes.retrieve_routes as rr
 import backend.routes.update_routes as ur
 import backend.routes.create_routes as cr
 import backend.routes.account_routes as ac
-import backend.routes.stripe_webhook_routes as swr
+import backend.routes.stripe_routes as sr
 import backend.gptroutes.ai_routes as air
 
 # OpenAI API key is automatically set ot the OPENAI_API_KEY environment variable
@@ -37,7 +37,7 @@ app.include_router(rr.router)
 app.include_router(ur.router)
 app.include_router(cr.router)
 app.include_router(ac.router)
-app.include_router(swr.router)
+app.include_router(sr.router)
 app.include_router(air.ai_router)
 
 

@@ -1,6 +1,22 @@
+from enum import Enum
+import os
+from typing import Optional
 from uuid import UUID
 from pydantic import BaseModel, EmailStr
 
+
+class NoterPlan(Enum):
+    FREE = 'free'
+    PREMIUM_MONTHLY = 'premium_monthly'
+    PREMIUM_YEARLY = 'premium_yearly'
+
+    @property
+    def stripe_price(self):
+        return {
+            NoterPlan.FREE: None,
+            NoterPlan.PREMIUM_MONTHLY: os.environ['STRIPE_PRICE_NOTER_PREMIUM_MONTHLY'],
+            NoterPlan.PREMIUM_YEARLY: os.environ['STRIPE_PRICE_NOTER_PREMIUM_YEARLY']
+        }[self]
 
 
 class UserCredentialsRequest(BaseModel):

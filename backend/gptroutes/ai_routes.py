@@ -15,7 +15,7 @@ ai_router = APIRouter(
     ]
 )
 
-SUMMARIZE_PROMPT = "Summarize the following text, get right into the summary. Do not use first person pronouns."
+SUMMARIZE_PROMPT = "Summarize the following text. Get right into the summary. Do not use first person pronouns. Do not reference this text."
 BULLET_PROMPT = "Summarize the following text into a markdown style list of bullet points. Do not use first person pronouns."
 
 def quiz_prompt(n: int):
@@ -92,3 +92,5 @@ async def generate_quiz(request: Request, id:str, n:int, is_auth: Union[bool, di
     
     return JSONResponse(status_code=200, content=quiz)
     
+
+# @ai_router.post('/ai/generate/study-guide')
