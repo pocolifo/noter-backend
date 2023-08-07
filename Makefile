@@ -1,3 +1,12 @@
+deps:
+	echo "installing dependencies for debian"
+	sudo apt install python3-pip postgresql postgresql-client -y
+	sudo runuser postgres -c 'cd && createdb noter && psql noter -c "ALTER USER postgres WITH PASSWORD \'1234\';"'
+	
+	cat <<'EOF' >.env
+	SQLALCHEMY_URL="postgresql://postgres:1234@localhost:5432/noter"
+	EOF
+
 init:
 	pip install -r requirements.txt
 
