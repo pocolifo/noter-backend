@@ -1,5 +1,8 @@
 import os
 import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from jinja2 import Environment, FileSystemLoader
 
 class Client:
     def __init__(self, server:str, port:int, email:str, password:str):
@@ -23,27 +26,61 @@ class Client:
         
         
     def send_verification_email(self, to:str, link:str):
-        msg = "\r\n".join([
-          "From: {0}".format(self.email),
-          "To: {0}".format(to),
-          "Subject: Verify Your Email!",
-          "",
-          "Click this link to verify: {0}".format(link)
-          ])
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = "Noter email verification"
+        msg["From"] = self.email
+        msg["To"] = to
+
+        text = "\n".join([
+        "Hello,",
+        "Please verify your email for Noter by clicking the link below.",
+        link,
+        "Thank you,",
+        "    the Noter Team",
+        "https://getnoter.com"
+        ])
+
+        environment = Environment(loader=FileSystemLoader("backend/email_templates/"))
+        html = environment.get_template("verifyemail.html.j2").render(link=link)
+
+        part1 = MIMEText(text, 'plain')
+        part2 = MIMEText(html, 'html')
+        msg.attach(part1)
+        msg.attach(part2)
+
         try:
-            self.connection.sendmail(self.email, to, msg)
+            self.connection.sendmail(self.email, to, msg.as_string())
             return True
-        except: return False
+        except: 
+            return False
         
         
     def send_verification_code(self, to:str, code:str):
-        msg = "\r\n".join([
-          "From: {0}".format(self.email),
-          "To: {0}".format(to),
-          "Subject: Verification Code",
-          "",
-          "Your verification code: {0}".format(code)
-          ])
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = "Noter verification code"
+        msg["From"] = self.email
+        msg["To"] = to
+
+        text = "\n".join([
+        "Hello,",
+        "Your Noter verification code is:",
+        "",
+        code,
+        "",
+        "If you did not request this code, please change your account password immediately.",
+        "Thank you,",
+        "    the Noter Team",
+        "https://getnoter.com"
+        ])
+
+        environment = Environment(loader=FileSystemLoader("backend/email_templates/"))
+        html = environment.get_template("verifycode.html.j2").render(code=code)
+
+        part1 = MIMEText(text, 'plain')
+        part2 = MIMEText(html, 'html')
+        msg.attach(part1)
+        msg.attach(part2)
+
         try:
             self.connection.sendmail(self.email, to, msg)
             return True
