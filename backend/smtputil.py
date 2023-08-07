@@ -2,6 +2,7 @@ import os
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
 from jinja2 import Environment, FileSystemLoader
 
 class Client:
@@ -31,10 +32,13 @@ class Client:
         msg["From"] = self.email
         msg["To"] = to
 
-        text = "\n".join([
+        text = "\r\n".join([
         "Hello,",
         "Please verify your email for Noter by clicking the link below.",
+        "",
         link,
+        "",
+        "If you did not just create a Noter account, please ignore this email.",
         "Thank you,",
         "    the Noter Team",
         "https://getnoter.com"
@@ -61,7 +65,7 @@ class Client:
         msg["From"] = self.email
         msg["To"] = to
 
-        text = "\n".join([
+        text = "\r\n".join([
         "Hello,",
         "Your Noter verification code is:",
         "",
@@ -82,7 +86,7 @@ class Client:
         msg.attach(part2)
 
         try:
-            self.connection.sendmail(self.email, to, msg)
+            self.connection.sendmail(self.email, to, msg.as_string())
             return True
         except: return False
 

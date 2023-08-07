@@ -24,7 +24,7 @@ def from_jwt(token: str):
     try:
         json_d = jwt.decode(token, os.environ['JWT_SECRET'], algorithms=['HS256'])
         encrypted_user_id = json_d.get("encrypted_id")
-        decrypted_user_id = fernet.decrypt(encrypted_user_id).decode()
+        decrypted_user_id = fernet.decrypt(encrypted_user_id.encode("utf-8")).decode()
         return decrypted_user_id
     except (jwt.DecodeError, jwt.InvalidTokenError) as e:
         print(f"Error decoding token: {str(e)} // Not authenticated?")
