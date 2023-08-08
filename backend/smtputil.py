@@ -45,7 +45,7 @@ class Client:
         ])
 
         environment = Environment(loader=FileSystemLoader("backend/email_templates/"))
-        html = environment.get_template("verifyemail.html.j2").render(link=link)
+        html = environment.get_template("verifyemail.html.j2").render(link=link, autoescape=True)
 
         part1 = MIMEText(text, 'plain')
         part2 = MIMEText(html, 'html')
@@ -78,7 +78,7 @@ class Client:
         ])
 
         environment = Environment(loader=FileSystemLoader("backend/email_templates/"))
-        html = environment.get_template("verifycode.html.j2").render(code=code)
+        html = environment.get_template("verifycode.html.j2").render(code=code, autoescape=True)
 
         part1 = MIMEText(text, 'plain')
         part2 = MIMEText(html, 'html')
