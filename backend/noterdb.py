@@ -83,7 +83,20 @@ class UserManager(BaseManager):
             return True
         return False
         
+    def delete_user(self, user_id: str):
+        try:
+            # Remove items with foreign key relationships first
+            self.session.query(Note).filter(Note.owner_id == user_id).delete()
+            self.session.query(Folder).filter(Folder.owner_id == user_id).delete()
+            # Then remove user
+            self.session.query(User).filter(User.id == user_id).delete()
+            self.session.commit()
+            return True
+        except Exception:
+            self.session.rollback()
+            return False
 
+        
 class NoteManager(BaseManager):
     def insert_note(self, note: dict):
         note_obj = Note(

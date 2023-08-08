@@ -8,6 +8,7 @@ from starlette.responses import Response
 from backend.models.requests import ItemMetadataRequest
 from backend.noterdb import DB, db
 from backend.dependency import auth_dependency
+from backend.utils import from_jwt
 
 router = APIRouter()
 
@@ -35,6 +36,14 @@ async def update_blocks(request: Request, id: str, is_auth: Union[bool, dict] = 
 @router.delete("/items/delete")
 async def delete_item(request: Request, id: str, is_auth: Union[bool, dict] = Depends(auth_dependency)):
     db.delete_item_by_id(request, id)
+    return Response(status_code=204)
+        
+    #return Response(status_code=400)
+    
+@router.delete("/items/user/delete")
+async def delete_user(request: Request, is_auth: Union[bool, dict] = Depends(auth_dependency)):
+    user_id = from_jwt(str(request.cookies.get("authenticate")))
+    if not db.user_manager.delete_user(user_id): return Response(status_code=400)
     return Response(status_code=204)
         
     #return Response(status_code=400)
