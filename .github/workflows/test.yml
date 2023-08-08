@@ -34,7 +34,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v2
         
-      - name: Set up Python
+      - name: Set - nameup Python
         uses: actions/setup-python@v1
         with:
           python-version: '3.10'
@@ -58,3 +58,45 @@ jobs:
         with:
           path: backend/
           fail_on_warnings: yes
+  
+  dast:
+    env:
+      META_SERVER_PORT: 9000
+      BACKEND_SERVER_PORT: 8000
+    needs: test
+    runs-on: ubuntu-latest
+    name: DAST with ZAP API scan
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        
+      - name: Set - nameup Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.10'
+        
+      - name: Set up project
+        run: make init
+      
+      - uses: JarvusInnovations/background-action@v1
+        name: Run backend in background
+        with:
+          run: make run
+          wait-on: |
+            tcp://127.0.0.1:${{ env.META_SERVER_PORT }}
+            tcp://127.0.0.1:${{ env.BACKEND_SERVER_PORT }}
+          tail: true  # monitor the progress live
+          log-output-resume: stderr  # Eliminates previosuly output stderr log entries from post-run output
+          wait-for: 2m  # timeout 2 minutes
+          log-output: stderr,stdout
+          log-output-if: failure
+
+      - name: Run ZAP API DAST Scan
+        uses: zaproxy/action-api-scan@v0.4.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          docker_name: 'ghcr.io/zaproxy/zaproxy:stable'
+          format: openapi
+          target: 'http://127.0.0.1:${{ env.BACKEND_SERVER_PORT }}/openapi.json'
+          cmd_options: '-f openapi'  
+        
