@@ -63,6 +63,22 @@ jobs:
     env:
       META_SERVER_PORT: 9000
       BACKEND_SERVER_PORT: 8000
+      SQLALCHEMY_URL: postgresql://postgres:postgres@localhost/postgres
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: postgres        
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        # Wait for Postgres to start
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     needs: test
     runs-on: ubuntu-latest
     name: DAST with ZAP API scan
@@ -83,11 +99,11 @@ jobs:
         with:
           run: make run
           wait-on: |
-            tcp://127.0.0.1:${{ env.META_SERVER_PORT }}
-            tcp://127.0.0.1:${{ env.BACKEND_SERVER_PORT }}
+            http-get://127.0.0.1:${{ env.BACKEND_SERVER_PORT }}/
+            http-get://127.0.0.1:${{ env.META_SERVER_PORT }}/access-flags
           tail: true  # monitor the progress live
           log-output-resume: stderr  # Eliminates previosuly output stderr log entries from post-run output
-          wait-for: 2m  # timeout 2 minutes
+          wait-for: 1m  # timeout 1 minute
           log-output: stderr,stdout
           log-output-if: failure
 
