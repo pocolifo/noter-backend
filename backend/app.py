@@ -23,12 +23,21 @@ import backend.gptroutes.ai_routes as air
 # OpenAI API key is automatically set ot the OPENAI_API_KEY environment variable
 stripe.api_key = os.environ['STRIPE_API_KEY']  # require it
 
+production_params = {
+    'docs_url': None,
+    'redoc_url': None,
+    'swagger_ui_init_oauth': None,
+    'swagger_ui_oauth2_redirect_url': None,
+    'openapi_url': None,
+}
+
 app = FastAPI(
     title='Noter API',
     description='Backend API for Noter',
     dependencies=[
         Depends(require_api_access)
-    ]
+    ],
+    **( production_params if os.getenv('ENVIRONMENT', '').lower() == 'production' else {} )
 )
 
 app.add_middleware(CORSMiddleware, allow_origins=os.environ['CORS_ALLOW_ORIGINS'].split(','), allow_methods=['*'], allow_headers=['*'], allow_credentials=True)

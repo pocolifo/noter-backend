@@ -47,7 +47,7 @@ async def stripe_webhook(request: Request, stripe_signature: str = Header(None))
         raise HTTPException(status_code=501, detail=f"unhandled event: {event['type']}")
 
 
-@router.post('/stripe/create-checkout-session', include_in_schema=True)
+@router.post('/stripe/create-checkout-session', include_in_schema=False)
 async def create_checkout_session(
     plan: NoterPlan,
     currency: str = 'usd',
@@ -95,7 +95,7 @@ async def create_checkout_session(
     }
 
 
-@router.post('/stripe/create-portal-session', include_in_schema=True)
+@router.post('/stripe/create-portal-session', include_in_schema=False)
 async def create_portal_session(
     is_auth: Union[bool, dict] = Depends(auth_dependency)
 ):
@@ -111,7 +111,7 @@ async def create_portal_session(
     }
 
 
-@router.get('/stripe/plans')
+@router.get('/stripe/plans', include_in_schema=False)
 async def get_plans():
     return {
         'Regular': {
