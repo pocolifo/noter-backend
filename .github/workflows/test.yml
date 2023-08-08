@@ -62,15 +62,7 @@ jobs:
         run: pip install bandit
       
       - name: Run Bandit
-        run: bandit -li -f html -o report.html -f screen -r backend meta admin
-      
-      - uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: bandit-report
-          path: report.html
-      
-
+        run: bandit -li -r backend meta admin
   
   dast:
     env:
@@ -81,7 +73,7 @@ jobs:
       postgres:
         image: postgres:latest
         env:
-          POSTGRES_DB: postgres        
+          POSTGRES_DB: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_USER: postgres
         ports:
