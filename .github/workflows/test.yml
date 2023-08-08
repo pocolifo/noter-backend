@@ -103,7 +103,9 @@ jobs:
       - uses: JarvusInnovations/background-action@v1
         name: Run backend in background
         with:
-          run: make run
+          run: |
+            uvicorn backend:app --host 0.0.0.0 --port 8000 --env-file .env --log-config logging.ini &
+            uvicorn meta:app --host 0.0.0.0 --port 9000 --env-file .env
           wait-on: |
             http-get://127.0.0.1:${{ env.BACKEND_SERVER_PORT }}/
             http-get://127.0.0.1:${{ env.META_SERVER_PORT }}/access-flags
@@ -120,3 +122,8 @@ jobs:
           format: openapi
           target: 'http://127.0.0.1:${{ env.BACKEND_SERVER_PORT }}/openapi.json'
           allow_issue_writing: false
+        
+      - uses: actions/upload-artifact@v3
+        with:
+          name: backend-log
+          path: backend.log
