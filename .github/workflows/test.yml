@@ -104,8 +104,8 @@ jobs:
         name: Run backend in background
         with:
           run: |
-            uvicorn backend:app --host 0.0.0.0 --port 8000 --env-file .env --log-config logging.ini &
-            uvicorn meta:app --host 0.0.0.0 --port 9000 --env-file .env
+            uvicorn backend:app --host 0.0.0.0 --port ${{ env.BACKEND_SERVER_PORT }} --env-file .env --log-config .github/workflows/backend-logger.ini &
+            uvicorn meta:app --host 0.0.0.0 --port ${{ env.META_SERVER_PORT }} --env-file .env &
           wait-on: |
             http-get://127.0.0.1:${{ env.BACKEND_SERVER_PORT }}/
             http-get://127.0.0.1:${{ env.META_SERVER_PORT }}/access-flags
