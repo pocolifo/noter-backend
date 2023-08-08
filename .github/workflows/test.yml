@@ -45,18 +45,31 @@ jobs:
         run: make test
   
   sast:
-    needs: test
+
     runs-on: ubuntu-latest
-    name: SAST testing with PyCharm Security
+    name: SAST with Bandit
+    needs: test
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
-
-      - name: Run PyCharm Security
-        uses: tonybaloney/pycharm-security@master
+      
+      - name: Set up Python
+        uses: actions/setup-python@v1
         with:
-          path: backend/
-          fail_on_warnings: yes
+          python-version: '3.10'
+      
+      - name: Install Bandit
+        run: pip install bandit
+      
+      - name: Run Bandit
+        run: bandit -li -f html -o report.html -r backend
+      
+      - uses: actions/upload-artifact@v3
+        with:
+          name: bandit-report
+          path: report.html
+      
+
   
   dast:
     env:
