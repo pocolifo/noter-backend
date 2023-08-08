@@ -1,5 +1,5 @@
 from datetime import datetime
-from random import randint
+from random import SystemRandom
 from cryptography.fernet import Fernet
 import argon2
 import jwt
@@ -37,9 +37,10 @@ def verify_hash(hash, password):
     except argon2.exceptions.VerifyMismatchError: return False
     
 def randint_n(d):
+    cryptogen = SystemRandom()
     range_start = 10**(d-1)
     range_end = (10**d)-1
-    return randint(range_start, range_end)
+    return cryptogen.randint(range_start, range_end)
     
 def clean_udata(udata:dict):
     udata.pop("password")
