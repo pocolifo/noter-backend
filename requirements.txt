@@ -2,7 +2,7 @@ fastapi
 slowapi
 openai
 pydantic
-SQLAlchemy
+SQLAlchemy==2.0.19
 starlette
 starlette-admin
 uvicorn
