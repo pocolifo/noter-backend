@@ -82,6 +82,10 @@ jobs:
       security-events: write
       statuses: write
       issues: write
+      actions: write
+      checks: read
+      contents: read
+      deployments: read
     needs: test
     runs-on: ubuntu-latest
     name: DAST with ZAP API scan
@@ -118,11 +122,4 @@ jobs:
           format: openapi
           target: 'http://127.0.0.1:${{ env.BACKEND_SERVER_PORT }}/openapi.json'
           allow_issue_writing: true
-          cmd_options: '-r report.html -w report.md -J report.json -d'  # r/w/J - html/md/json reports, d - debug msgs
-        
-      - uses: actions/upload-artifact@v3
-        with:
-          name: zap-api-scan-report
-          path: report.*
-
-        
+          cmd_options: '-d'
