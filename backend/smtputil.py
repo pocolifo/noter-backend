@@ -44,8 +44,8 @@ class Client:
         "https://getnoter.com"
         ])
 
-        environment = Environment(loader=FileSystemLoader("backend/email_templates/"))
-        html = environment.get_template("verifyemail.html.j2").render(link=link, autoescape=True)
+        environment = Environment(loader=FileSystemLoader("backend/email_templates/"), autoescape=True)
+        html = environment.get_template("verifyemail.html.j2").render(link=link)
 
         part1 = MIMEText(text, 'plain')
         part2 = MIMEText(html, 'html')
@@ -77,8 +77,8 @@ class Client:
         "https://getnoter.com"
         ])
 
-        environment = Environment(loader=FileSystemLoader("backend/email_templates/"))
-        html = environment.get_template("verifycode.html.j2").render(code=code, autoescape=True)
+        environment = Environment(loader=FileSystemLoader("backend/email_templates/"), autoescape=True)
+        html = environment.get_template("verifycode.html.j2").render(code=code)
 
         part1 = MIMEText(text, 'plain')
         part2 = MIMEText(html, 'html')
