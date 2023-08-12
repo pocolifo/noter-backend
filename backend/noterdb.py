@@ -26,8 +26,8 @@ class UserManager(BaseManager):
                 'name': user.name,
                 'pfp': user.pfp,
                 'stripe_id': user.stripe_id,
-                'last_signed_in': user.last_signed_in,
-                'joined_on': user.joined_on,
+                'last_signed_in': str(user.last_signed_in),
+                'joined_on': str(user.joined_on),
                 'history': user.history,
                 'email_verified': user.email_verified,
                 'has_noter_access': user.has_noter_access,
@@ -59,21 +59,21 @@ class UserManager(BaseManager):
         
         if user is None: return None
         return {"id": user.id, "email": user.email, "password": user.password, "name": user.name,
-                "pfp": user.pfp, "stripe_id": user.stripe_id, "last_signed_in": user.last_signed_in,
-                "joined_on": user.joined_on, "history": user.history, "email_verified": user.email_verified,
+                "pfp": user.pfp, "stripe_id": user.stripe_id, "last_signed_in": str(user.last_signed_in),
+                "joined_on": str(user.joined_on), "history": user.history, "email_verified": user.email_verified,
                 "has_noter_access": user.has_noter_access, "verification_code": user.verification_code}
 
     def get_users_notes(self, request: Request):
         user_id = from_jwt(str(request.cookies.get("authenticate")))
         notes = self.session.query(Note).filter(Note.owner_id == user_id).all()
         return [{"id": note.id, "type": note.type, "name": note.name, "path": note.path,
-            "last_edited": note.last_edited, "created_on": note.created_on, "blocks": note.blocks} for note in notes]
+            "last_edited": str(note.last_edited), "created_on": str(note.created_on), "blocks": note.blocks} for note in notes]
     
     def get_users_folders(self, request: Request):
         user_id = from_jwt(str(request.cookies.get("authenticate")))
         folders = self.session.query(Folder).filter(Folder.owner_id == user_id).all()
         return [{"id": folder.id, "type": "folder", "name": folder.name, "path": folder.path,
-            "last_edited": folder.last_edited, "created_on": folder.created_on} for folder in folders]
+            "last_edited": str(folder.last_edited), "created_on": str(folder.created_on)} for folder in folders]
     
     def update_column(self, user_id, column_name, column_value):
         user = self.session.query(User).filter(User.id == user_id).first()
@@ -130,14 +130,14 @@ class NoteManager(BaseManager):
         if note is None: return False
         
         return {
-        "id":note.id,
-        "type":note.type,
-        "name":note.name,
-        "path":note.path,
-        "last_edited":note.last_edited,
-        "created_on":note.created_on,
-        "owner_id":note.owner_id,
-        "blocks":note.blocks
+            "id":note.id,
+            "type":note.type,
+            "name":note.name,
+            "path":note.path,
+            "last_edited":str(note.last_edited),
+            "created_on":str(note.created_on),
+            "owner_id":note.owner_id,
+            "blocks":note.blocks
         }
         
         

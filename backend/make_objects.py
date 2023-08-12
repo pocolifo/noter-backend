@@ -1,10 +1,9 @@
 from uuid import uuid4
-from datetime import datetime
 from starlette.requests import Request
 import stripe
 
 from backend.noterdb import db
-from backend.utils import from_jwt
+from backend.utils import from_jwt, get_current_isodate
 
 def make_user(email: str, password: str):
     stripe_customer = stripe.Customer.create(
@@ -20,8 +19,8 @@ def make_user(email: str, password: str):
         "password":password,
         "pfp":default_pfp, # UPDATE DEFAULT PFP LATER
         "stripe_id": stripe_customer.id,
-        "last_signed_in":str(datetime.now().isoformat()),
-        "joined_on":str(datetime.now().isoformat()),
+        "last_signed_in":get_current_isodate(),
+        "joined_on":get_current_isodate(),
         "history":[],
         "email_verified":False,
         "has_noter_access": False,
@@ -35,8 +34,8 @@ def make_note(request: Request, name: str, path: list, studyguide: bool):
         "type":type_,
         "name":name,
         "path":path,
-        "last_edited":"",
-        "created_on":str(datetime.now().isoformat()),
+        "last_edited":None,
+        "created_on":get_current_isodate(),
         "owner":from_jwt(str(request.cookies.get("authenticate"))),
         "blocks":[]
     }
@@ -47,8 +46,8 @@ def make_folder(request: Request, name: str, path: list):
         "type":"folder",
         "name":name,
         "path":path,
-        "last_edited":"",
-        "created_on":str(datetime.now().isoformat()),
+        "last_edited":None,
+        "created_on":get_current_isodate(),
         "owner":from_jwt(str(request.cookies.get("authenticate")))
     }
     

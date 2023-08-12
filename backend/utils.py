@@ -8,7 +8,7 @@ import os
 ph = argon2.PasswordHasher()
 encryption_key = bytes(os.environ["FERNET_KEY"], encoding="utf-8")
 
-def get_current_isodate(): return str(datetime.now().isoformat())
+def get_current_isodate(): return datetime.now().isoformat()
 
 def to_jwt(user_id: str):
     fernet = Fernet(encryption_key)

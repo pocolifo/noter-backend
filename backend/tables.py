@@ -1,4 +1,4 @@
-from sqlalchemy import TEXT, Column, String, ARRAY, JSON, Boolean, ForeignKey
+from sqlalchemy import TEXT, Column, String, ARRAY, JSON, Boolean, ForeignKey, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base, relationship
 
@@ -17,8 +17,8 @@ class User(Base):
     pfp = Column(TEXT)
     password = Column(String)
     stripe_id = Column(String)
-    last_signed_in = Column(String)
-    joined_on = Column(String)
+    last_signed_in = Column(DateTime)
+    joined_on = Column(DateTime)
     history = Column(JSON)
     email_verified = Column(Boolean)
     has_noter_access = Column(Boolean)
@@ -34,8 +34,8 @@ class Note(Base):
     type = Column(String)
     name = Column(String)
     path = Column(ARRAY(String))
-    last_edited = Column(String)
-    created_on = Column(String)
+    last_edited = Column(DateTime)
+    created_on = Column(DateTime)
     owner_id = Column(UUID(as_uuid=False), ForeignKey('users.id'))
     blocks = Column(JSON)
 
@@ -49,8 +49,8 @@ class Folder(Base):
     type = Column(String)
     name = Column(String)
     path = Column(ARRAY(String))
-    last_edited = Column(String)
-    created_on = Column(String)
+    last_edited = Column(DateTime)
+    created_on = Column(DateTime)
     owner_id = Column(UUID(as_uuid=False), ForeignKey('users.id'))
 
     owner = relationship("User")
