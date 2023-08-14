@@ -11,6 +11,8 @@ from backend.noterdb import db
 
 router = APIRouter()
 
+# TODO: Use session context-manager in stripe routes matching the standard used in ../noterdb.py
+
 @router.post('/stripe/hook', include_in_schema=False)
 async def stripe_webhook(request: Request, stripe_signature: str = Header(None)):
     data = await request.body()
