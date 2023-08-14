@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 from starlette.requests import Request
 
-from backend.utils import from_jwt
+from backend.utils import from_jwt, is_valid_uuid4
 from backend.tables import User, Note, Folder
 
 class BaseManager:
@@ -93,8 +93,10 @@ class UserManager(BaseManager):
                 "last_edited": str(folder.last_edited), "created_on": str(folder.created_on)} for folder in folders]
     
     def update_column(self, user_id, column_name, column_value):
+        if not is_valid_uuid4(user_id): return False
+            
         with self.open_session() as session:
-            user = session.query(User).filter(User.id == user_id).first()
+            user = session.query(User).filter(User.id == str(user_id)).first()
             if user is not None:
                 setattr(user, column_name, column_value)
                 session.commit()

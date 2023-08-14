@@ -48,3 +48,18 @@ def clean_udata(udata:dict):
     udata.pop("verification_code")
     return udata
     
+def is_valid_uuid4(uuid: str):
+    if len(uuid) != 36:
+        return False
+
+    illegal_chars = "!@#$%^&*()+?_=,<>/" # All special characters besides '-'
+    if any(c in illegal_chars for c in uuid):
+        return False
+        
+    # Check for 8-4-4-4-12 Constant
+    if uuid[8] != '-' or uuid[13] != '-' or uuid[17] != '-' or uuid[23] != '-':
+        return False
+        
+    return True
+        
+    
