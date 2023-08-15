@@ -15,7 +15,7 @@ def make_user(email: str, password: str):
     return {
         "id":str(uuid4()),
         "email":email,
-        "name":(email.split('@')[0]).capitalize(),
+        "name":email.split('@')[0],
         "password":password,
         "pfp":default_pfp, # UPDATE DEFAULT PFP LATER
         "stripe_id": stripe_customer.id,
