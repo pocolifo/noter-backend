@@ -11,8 +11,6 @@ from backend.noterdb import db
 
 router = APIRouter()
 
-# TODO: Use session context-manager in stripe routes matching the standard used in ../noterdb.py
-
 @router.post('/stripe/hook', include_in_schema=False)
 async def stripe_webhook(request: Request, stripe_signature: str = Header(None)):
     data = await request.body()
@@ -24,7 +22,7 @@ async def stripe_webhook(request: Request, stripe_signature: str = Header(None))
             secret=os.environ['STRIPE_ENDPOINT_SECRET']
         )
     except stripe.error.SignatureVerificationError as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=400, detail='Bad signature')
 
     if not event:
         raise HTTPException(status_code=400, detail='Event required')
@@ -38,10 +36,12 @@ async def stripe_webhook(request: Request, stripe_signature: str = Header(None))
         has_noter_access = subscription_status == 'active' or subscription_status == 'trialing'
 
         # Update the database
-        db.session.query(User).filter(User.stripe_id == stripe_customer_id).update({
-            User.has_noter_access: has_noter_access
-        })
-        db.session.commit()
+        with db.open_session() as session:
+            session.query(User).filter(User.stripe_id == stripe_customer_id).update({
+                User.has_noter_access: has_noter_access
+            })
+
+            session.commit()
 
         # All set, return 204 No Content
         return Response(status_code=204)
@@ -55,6 +55,15 @@ async def create_checkout_session(
     currency: str = 'usd',
     is_auth: Union[bool, dict] = Depends(auth_dependency)
 ):
+    free_trial_subscription_data = {
+        'trial_period_days': 7,
+        'trial_settings': {
+            'end_behavior': {
+                'missing_payment_method': 'pause'
+            }
+        }
+    }
+    
     session = stripe.checkout.Session.create(
         allow_promotion_codes=True,
         currency=currency ,
@@ -81,14 +90,7 @@ async def create_checkout_session(
                 'price': plan.stripe_price,
             }
         ],
-        subscription_data={
-            'trial_period_days': 1,
-            'trial_settings': {
-                'end_behavior': {
-                    'missing_payment_method': 'pause'
-                }
-            }
-        }
+        subscription_data=None if NoterPlan.FREE == plan else free_trial_subscription_data
     )
     
     return {
@@ -116,7 +118,7 @@ async def create_portal_session(
 @router.get('/stripe/plans', include_in_schema=False)
 async def get_plans():
     return {
-        'Regular': {
+        'Free': {
             'id': NoterPlan.FREE,
             'price': 'Free',
             'period': None,

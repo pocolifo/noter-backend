@@ -57,7 +57,7 @@ def is_valid_uuid4(uuid: str):
         return False
         
     # Check for 8-4-4-4-12 Constant
-    if uuid[8] != '-' or uuid[13] != '-' or uuid[17] != '-' or uuid[23] != '-':
+    if uuid[8] != '-' or uuid[13] != '-' or uuid[18] != '-' or uuid[23] != '-':
         return False
         
     return True
