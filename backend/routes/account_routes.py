@@ -1,4 +1,5 @@
 import json
+import os
 from typing import Union
 
 from fastapi import APIRouter, Depends
@@ -103,13 +104,13 @@ async def update_name(request: Request, pfp_data: PFPUpdateRequest, user: Union[
 @limiter.limit("3/hour")
 @router.post("/resend-verification")
 async def resend_verification_email(request: Request, user: Union[bool, dict] = Depends(auth_dependency)):
-    m_link = f"http://localhost:8000/verify?id={user.get('id')}"
+    m_link = f"{os.environ['LANDING_PAGE_URL']}/register?vid={user.get('id')}"
     
     if smtp_client.send_verification_email(user.get('email'), m_link): return Response(status_code=200)
     else: return Response(status_code=400)
     
     
-@router.get("/verify")
+@router.post("/verify")
 async def verify_email(request: Request, id: str):
     if not db.user_manager.update_column(id, "email_verified", True):
         return Response(status_code=400)

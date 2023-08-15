@@ -13,11 +13,10 @@ class NoterPlan(Enum):
     @property
     def stripe_price(self):
         return {
-            NoterPlan.FREE: None,
+            NoterPlan.FREE: os.environ['STRIPE_PRICE_NOTER_FREE'],
             NoterPlan.PREMIUM_MONTHLY: os.environ['STRIPE_PRICE_NOTER_PREMIUM_MONTHLY'],
             NoterPlan.PREMIUM_YEARLY: os.environ['STRIPE_PRICE_NOTER_PREMIUM_YEARLY']
         }[self]
-
 
 class UserCredentialsRequest(BaseModel):
     email: EmailStr

@@ -1,3 +1,4 @@
+import os
 from typing import Union
 
 from fastapi import APIRouter, Depends
@@ -26,7 +27,7 @@ async def create_user(
         db.user_manager.insert_user(user)
         user = clean_udata(user)
         
-        m_link = f"http://localhost:8000/verify?id={user.get('id')}"
+        m_link = f"{os.environ['LANDING_PAGE_URL']}/register?vid={user.get('id')}"
         task = BackgroundTask(smtp_client.send_verification_email, to=creds.email, link=m_link)
         
         response = JSONResponse(status_code=200, content=user, background=task)
