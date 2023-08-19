@@ -8,7 +8,7 @@ from backend.utils import hash_password
 def pytest_sessionstart():
     print('Session starting... creating test user.')
     user = make_user(TEST_USER_EMAIL, hash_password(TEST_USER_PASSWORD))
-    db.user_manager.insert_user(user)
+    db.user_manager.insert(user)
     print('Created test user successfully.')
 
 
