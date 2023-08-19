@@ -36,7 +36,7 @@ async def stripe_webhook(request: Request, stripe_signature: str = Header(None))
         has_noter_access = subscription_status == 'active' or subscription_status == 'trialing'
 
         # Update the database
-        with db.open_session() as session:
+        with db.get_session() as session:
             session.query(User).filter(User.stripe_id == stripe_customer_id).update({
                 User.has_noter_access: has_noter_access
             })

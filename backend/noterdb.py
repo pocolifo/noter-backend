@@ -16,7 +16,7 @@ class BaseManager:
         self.session = session
         
     @contextmanager
-    def open_session(self):
+    def get_session(self):
         session = self.session
         try:
             yield session
@@ -27,8 +27,8 @@ class BaseManager:
             session.commit()
 
 class UserManager(BaseManager):
-    def get_user_data_by_id(self, id: str):
-        with self.open_session() as session:
+    def get_data_by_id(self, id: str):
+        with self.get_session() as session:
             user = session.query(User).filter(User.id == id).first()
                 
             if user is not None:
@@ -49,8 +49,8 @@ class UserManager(BaseManager):
                 
             return False
 
-    def insert_user(self, user: dict):
-        with self.open_session() as session:
+    def insert(self, user: dict):
+        with self.get_session() as session:
             user_obj = User(
                 id=user.get('id'),
                 email=user.get('email'),
@@ -68,8 +68,8 @@ class UserManager(BaseManager):
             session.add(user_obj)
             session.commit()
 
-    def get_user_by_email(self, email: str):
-        with self.open_session() as session:
+    def get_by_email(self, email: str):
+        with self.get_session() as session:
             user = session.query(User).filter(User.email == email).first()
             
             if user is None: return None
@@ -78,16 +78,16 @@ class UserManager(BaseManager):
                     "joined_on": str(user.joined_on), "history": user.history, "email_verified": user.email_verified,
                     "has_noter_access": user.has_noter_access, "verification_code": user.verification_code}
 
-    def get_users_notes(self, request: Request):
+    def get_notes(self, request: Request):
         user_id = from_jwt(str(request.cookies.get("authenticate")))
-        with self.open_session() as session:
+        with self.get_session() as session:
             notes = session.query(Note).filter(Note.owner_id == user_id).all()
             return [{"id": note.id, "type": note.type, "name": note.name, "path": note.path,
                 "last_edited": str(note.last_edited), "created_on": str(note.created_on), "blocks": note.blocks} for note in notes]
     
-    def get_users_folders(self, request: Request):
+    def get_folders(self, request: Request):
         user_id = from_jwt(str(request.cookies.get("authenticate")))
-        with self.open_session() as session:  
+        with self.get_session() as session:  
             folders = session.query(Folder).filter(Folder.owner_id == user_id).all()
             return [{"id": folder.id, "type": "folder", "name": folder.name, "path": folder.path,
                 "last_edited": str(folder.last_edited), "created_on": str(folder.created_on)} for folder in folders]
@@ -95,7 +95,7 @@ class UserManager(BaseManager):
     def update_column(self, user_id, column_name, column_value):
         if not is_valid_uuid4(user_id): return False
             
-        with self.open_session() as session:
+        with self.get_session() as session:
             user = session.query(User).filter(User.id == str(user_id)).first()
             if user is not None:
                 setattr(user, column_name, column_value)
@@ -103,8 +103,8 @@ class UserManager(BaseManager):
                 return True
             return False
         
-    def delete_user(self, user_id: str):
-        with self.open_session() as session:
+    def delete(self, user_id: str):
+        with self.get_session() as session:
             try:
                 # Remove items with foreign key relationships first
                 session.query(Note).filter(Note.owner_id == user_id).delete()
@@ -119,8 +119,8 @@ class UserManager(BaseManager):
 
         
 class NoteManager(BaseManager):
-    def insert_note(self, note: dict):
-        with self.open_session() as session:
+    def insert(self, note: dict):
+        with self.get_session() as session:
             note_obj = Note(
                 id=note.get('id'),
                 type=note.get('type'),
@@ -136,7 +136,7 @@ class NoteManager(BaseManager):
 
     def update_blocks_by_id(self, request: Request, id: str, new_blocks: str):
         user_id = from_jwt(str(request.cookies.get("authenticate")))
-        with self.open_session() as session:
+        with self.get_session() as session:
             notes = session.query(Note).filter(Note.id == id, Note.owner_id == user_id).all()
 
             for note in notes:
@@ -145,10 +145,10 @@ class NoteManager(BaseManager):
 
             session.commit()
         
-    def get_note_by_id(self, request: Request, id:str):
+    def get_by_id(self, request: Request, id:str):
         user_id = from_jwt(str(request.cookies.get("authenticate")))
     
-        with self.open_session() as session:
+        with self.get_session() as session:
             note = session.query(Note).filter(Note.id == id, Note.owner_id == user_id).first()
             if note is None: return False
             
@@ -172,7 +172,7 @@ class FolderManager(BaseManager):
             return True
 
         user_id = from_jwt(str(request.cookies.get("authenticate")))
-        with self.open_session() as session:
+        with self.get_session() as session:
             folders = session.query(Folder).filter(Folder.owner_id == user_id).all()
 
             for folder in folders:
@@ -181,8 +181,8 @@ class FolderManager(BaseManager):
 
             return False
 
-    def insert_folder(self, folder: dict):
-        with self.open_session() as session:
+    def insert(self, folder: dict):
+        with self.get_session() as session:
             folder_obj = Folder(
                 id=folder.get('id'),
                 type=folder.get('type'),
@@ -208,7 +208,7 @@ class DB:
         self.conn_link = conn_link
 
     @contextmanager
-    def open_session(self):
+    def get_session(self):
         session = self.session
         try:
             yield session
@@ -235,7 +235,7 @@ class DB:
         
     def is_authenticated(self, request: Request) -> bool:
         user_id = from_jwt(str(request.cookies.get("authenticate")))
-        with self.open_session() as session:
+        with self.get_session() as session:
             user = session.query(User).filter(User.id == user_id).first()
             return user is not None
 
@@ -243,7 +243,7 @@ class DB:
     def get_item(self, request: Request, id: str):
         user_id = from_jwt(str(request.cookies.get("authenticate")))
 
-        with self.open_session() as session:
+        with self.get_session() as session:
             note = session.query(Note).filter(Note.id == id, Note.owner_id == user_id).first()
 
             if note is not None:
@@ -276,7 +276,7 @@ class DB:
     def delete_item_by_id(self, request: Request, id: str):
         user_id = from_jwt(str(request.cookies.get("authenticate")))
 
-        with self.open_session() as session:
+        with self.get_session() as session:
             session.query(Note).filter(Note.path.any(id), Note.owner_id == user_id).delete()
             session.query(Folder).filter(Folder.path.any(id), Folder.owner_id == user_id).delete()
 
@@ -293,7 +293,7 @@ class DB:
         folder.path = new_path
         folder.last_edited = datetime.now().isoformat()
         
-        with self.open_session() as session:
+        with self.get_session() as session:
             child_path = old_path + [folder.id]
             child_items = child_items+session.query(Note).filter(Note.path == child_path).all() # Concatenate list NOT append list
             child_items = child_items+session.query(Folder).filter(Folder.path == child_path).all()
@@ -309,7 +309,7 @@ class DB:
     def update_metadata_by_id(self, request: Request, id: str, new_name: str, new_path: list):
         user_id = from_jwt(str(request.cookies.get("authenticate")))
       
-        with self.open_session() as session:
+        with self.get_session() as session:
             note = session.query(Note).filter(Note.id == id, Note.owner_id == user_id).first()
             if note is not None:
                 note.name = new_name

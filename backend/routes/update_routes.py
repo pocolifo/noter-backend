@@ -43,7 +43,7 @@ async def delete_item(request: Request, id: str, is_auth: Union[bool, dict] = De
 @router.delete("/items/user/delete")
 async def delete_user(request: Request, is_auth: Union[bool, dict] = Depends(auth_dependency)):
     user_id = from_jwt(str(request.cookies.get("authenticate")))
-    if not db.user_manager.delete_user(user_id): return Response(status_code=400)
+    if not db.user_manager.delete(user_id): return Response(status_code=400)
     return Response(status_code=204)
         
     #return Response(status_code=400)

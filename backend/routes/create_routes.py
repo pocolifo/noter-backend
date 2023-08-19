@@ -22,9 +22,9 @@ async def create_user(
     creds: UserCredentialsRequest,
     _ = Depends(require_user_creation_access)
 ):
-    if db.user_manager.get_user_by_email(creds.email) is None:
+    if db.user_manager.get_by_email(creds.email) is None:
         user = make_user(creds.email, hash_password(creds.password))
-        db.user_manager.insert_user(user)
+        db.user_manager.insert(user)
         user = clean_udata(user)
         
         m_link = f"{os.environ['LANDING_PAGE_URL']}/register?vid={user.get('id')}"
@@ -48,7 +48,7 @@ async def create_note(
         return Response(status_code=400)
     
     note = make_note(request, new_note.name, new_note.path, False)
-    db.note_manager.insert_note(note)
+    db.note_manager.insert(note)
     return JSONResponse(status_code=201, content=note)
 
 
@@ -63,7 +63,7 @@ async def create_studyguide(
         return Response(status_code=400)
     
     note = make_note(request, new_study_guide.name, new_study_guide.path, True)
-    db.note_manager.insert_note(note)
+    db.note_manager.insert(note)
     return JSONResponse(status_code=201, content=note)
 
 
@@ -78,5 +78,5 @@ async def create_folder(
         return Response(status_code=400)
     
     folder = make_folder(request, new_folder.name, new_folder.path)
-    db.folder_manager.insert_folder(folder)
+    db.folder_manager.insert(folder)
     return JSONResponse(status_code=201, content=folder)

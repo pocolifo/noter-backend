@@ -61,7 +61,7 @@ async def generate_summary(
 ):
     sentences = ""
     
-    note = db.note_manager.get_note_by_id(request, id)
+    note = db.note_manager.get_by_id(request, id)
     blocks = note["blocks"]
     for b in blocks:
         if b["type"] == "text" or b["type"] == "header":
@@ -81,7 +81,7 @@ async def generate_summary(
 async def generate_quiz(request: Request, id:str, n:int, is_auth: Union[bool, dict] = Depends(auth_dependency)):
     sentences = ""
     
-    note = db.note_manager.get_note_by_id(request, id)
+    note = db.note_manager.get_by_id(request, id)
     blocks = note["blocks"]
     for b in blocks:
         if b["type"] == "text" or b["type"] == "header":

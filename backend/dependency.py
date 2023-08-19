@@ -15,7 +15,7 @@ async def auth_dependency(request: Request) -> Union[bool, dict]:
     if not db.is_authenticated(request):
         raise HTTPException(status_code=401, detail="Not Authenticated")
     
-    return json.loads(db.user_manager.get_user_data_by_id(user_id))
+    return json.loads(db.user_manager.get_data_by_id(user_id))
 
 async def require_access_flag(flag: str):
     # If in testing environment, just skip this because the meta server isn't run in test

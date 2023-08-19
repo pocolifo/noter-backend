@@ -30,7 +30,7 @@ async def request_password_update(request: Request, user: Union[bool, dict] = De
     
 @router.post("/items/update/reqemail") # JSON EX: {"email":"my_new_email@example.com"}
 async def request_email_update(request: Request, new_email: RequestEmailUpdateRequest, user: Union[bool, dict] = Depends(auth_dependency)):
-    if db.user_manager.get_user_by_email(new_email.email) is None:
+    if db.user_manager.get_by_email(new_email.email) is None:
         id = user.get("id")
         
         cur_code = str(randint_n(16))

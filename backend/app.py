@@ -52,7 +52,7 @@ app.include_router(air.ai_router)
 
 @app.post("/authenticate")
 async def authenticate(data: UserCredentialsRequest):
-    u = db.user_manager.get_user_by_email(data.email)
+    u = db.user_manager.get_by_email(data.email)
 
     if not u:
         return {"authenticated": False}
@@ -72,7 +72,7 @@ async def root(request: Request):
     if not db.is_authenticated(request):
         return JSONResponse(status_code=200, content={"apiVersion": 1.1, "user":None})
         
-    udata = clean_udata(json.loads(db.user_manager.get_user_data_by_id(from_jwt(str(request.cookies.get("authenticate"))))))
+    udata = clean_udata(json.loads(db.user_manager.get_data_by_id(from_jwt(str(request.cookies.get("authenticate"))))))
     
     return JSONResponse(status_code=200, content=(udata)) # add API version to response content
 
