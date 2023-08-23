@@ -5,7 +5,7 @@ from backend.tables import User
 from backend.make_objects import make_user
 from backend.utils import hash_password
 
-def pytest_sessionstart():
+async def pytest_sessionstart():
     print('Session starting... creating test user.')
     user = make_user(TEST_USER_EMAIL, hash_password(TEST_USER_PASSWORD))
     await db.user_manager.insert(user)
