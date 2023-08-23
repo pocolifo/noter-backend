@@ -22,9 +22,9 @@ async def create_user(
     creds: UserCredentialsRequest,
     _ = Depends(require_user_creation_access)
 ):
-    if db.user_manager.get_by_email(creds.email) is None:
+    if await db.user_manager.get_by_email(creds.email) is None:
         user = make_user(creds.email, hash_password(creds.password))
-        db.user_manager.insert(user)
+        await db.user_manager.insert(user)
         user = clean_udata(user)
         
         m_link = f"{os.environ['LANDING_PAGE_URL']}/register?vid={user.get('id')}"
@@ -44,11 +44,11 @@ async def create_note(
     is_auth: Union[bool, dict] = Depends(auth_dependency),
     _ = Depends(require_item_creation_access)
 ):
-    if not db.folder_manager.does_path_exist(request, new_note.path):
+    if not await db.folder_manager.does_path_exist(request, new_note.path):
         return Response(status_code=400)
     
     note = make_note(request, new_note.name, new_note.path, False)
-    db.note_manager.insert(note)
+    await db.note_manager.insert(note)
     return JSONResponse(status_code=201, content=note)
 
 
@@ -59,11 +59,11 @@ async def create_studyguide(
     is_auth: Union[bool, dict] = Depends(auth_dependency),
     _ = Depends(require_item_creation_access)
 ):
-    if not db.folder_manager.does_path_exist(request, new_study_guide.path):
+    if not await db.folder_manager.does_path_exist(request, new_study_guide.path):
         return Response(status_code=400)
     
     note = make_note(request, new_study_guide.name, new_study_guide.path, True)
-    db.note_manager.insert(note)
+    await db.note_manager.insert(note)
     return JSONResponse(status_code=201, content=note)
 
 
@@ -74,9 +74,9 @@ async def create_folder(
     is_auth: Union[bool, dict] = Depends(auth_dependency),
     _ = Depends(require_item_creation_access)
 ):
-    if not db.folder_manager.does_path_exist(request, new_folder.path):
+    if not await db.folder_manager.does_path_exist(request, new_folder.path):
         return Response(status_code=400)
     
     folder = make_folder(request, new_folder.name, new_folder.path)
-    db.folder_manager.insert(folder)
+    await db.folder_manager.insert(folder)
     return JSONResponse(status_code=201, content=folder)

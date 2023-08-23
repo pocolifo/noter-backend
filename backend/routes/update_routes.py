@@ -14,10 +14,10 @@ router = APIRouter()
 
 @router.post("/items/update/metadata")
 async def update_metadata(request: Request, update_info: ItemMetadataRequest, id: str, is_auth: Union[bool, dict] = Depends(auth_dependency)):
-    if not db.folder_manager.does_path_exist(request, update_info.path):
+    if not await db.folder_manager.does_path_exist(request, update_info.path):
         return Response(status_code=400)
 
-    db.update_metadata_by_id(request, id, update_info.name, update_info.path)
+    await db.update_metadata_by_id(request, id, update_info.name, update_info.path)
             
     return Response(status_code=204)
     
@@ -28,14 +28,14 @@ async def update_blocks(request: Request, id: str, is_auth: Union[bool, dict] = 
     try: newblockinfo = await request.json()
     except json.decoder.JSONDecodeError: return Response(status_code=400)
 
-    db.note_manager.update_blocks_by_id(request, id, json.dumps(newblockinfo))
+    await db.note_manager.update_blocks_by_id(request, id, json.dumps(newblockinfo))
     
     return Response(status_code=204)
     
     
 @router.delete("/items/delete")
 async def delete_item(request: Request, id: str, is_auth: Union[bool, dict] = Depends(auth_dependency)):
-    db.delete_item_by_id(request, id)
+    await db.delete_item_by_id(request, id)
     return Response(status_code=204)
         
     #return Response(status_code=400)
@@ -43,7 +43,7 @@ async def delete_item(request: Request, id: str, is_auth: Union[bool, dict] = De
 @router.delete("/items/user/delete")
 async def delete_user(request: Request, is_auth: Union[bool, dict] = Depends(auth_dependency)):
     user_id = from_jwt(str(request.cookies.get("authenticate")))
-    if not db.user_manager.delete(user_id): return Response(status_code=400)
+    if not await db.user_manager.delete(user_id): return Response(status_code=400)
     return Response(status_code=204)
         
     #return Response(status_code=400)

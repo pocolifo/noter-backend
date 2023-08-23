@@ -22,21 +22,23 @@ async def request_password_update(request: Request, user: Union[bool, dict] = De
     id = user.get("id")
     
     v_code = str(randint_n(16))
-    if not db.user_manager.update_column(id, "verification_code", v_code): return Response(status_code=400)
-    smtp_client.send_verification_code(user["email"], v_code)
+    if not await db.user_manager.update_column(id, "verification_code", v_code): return Response(status_code=400)
+    print(user["email"])
+    print(v_code)
+    print(smtp_client.send_verification_code(user["email"], v_code))
     
     return Response(status_code=200)
     
     
 @router.post("/items/update/reqemail") # JSON EX: {"email":"my_new_email@example.com"}
 async def request_email_update(request: Request, new_email: RequestEmailUpdateRequest, user: Union[bool, dict] = Depends(auth_dependency)):
-    if db.user_manager.get_by_email(new_email.email) is None:
+    if await db.user_manager.get_by_email(new_email.email) is None:
         id = user.get("id")
         
         cur_code = str(randint_n(16))
         new_code = str(randint_n(16))
         
-        if not db.user_manager.update_column(id, "verification_code", f"{cur_code}#{new_code}"):
+        if not await db.user_manager.update_column(id, "verification_code", f"{cur_code}#{new_code}"):
             return Response(status_code=400)
         
         smtp_client.send_verification_code(user["email"], cur_code)
@@ -59,8 +61,8 @@ async def update_password(request: Request, user: Union[bool, dict] = Depends(au
     user_ver_code = str(user["verification_code"]).split("#")[0]
     
     if str(in_code) == user_ver_code:
-        if not db.user_manager.update_column(id, "password", new_password): return Response(status_code=400)
-        if not db.user_manager.update_column(id, "verification_code", ""): return Response(status_code=400)
+        if not await db.user_manager.update_column(id, "password", new_password): return Response(status_code=400)
+        if not await db.user_manager.update_column(id, "verification_code", ""): return Response(status_code=400)
         return Response(status_code=204) # Valid code - password updated
         
     return Response(status_code=400) # Invalid code
@@ -73,9 +75,9 @@ async def update_email(request: Request, new_email: EmailUpdateRequest, user: Un
     expected_current_email_code, expected_new_email_code = str(user['verification_code']).split('#')
 
     if str(new_email.cur_code) == expected_current_email_code and str(new_email.new_code) == expected_new_email_code:
-        if not db.user_manager.update_column(id, "email", new_email.email) or \
-            not db.user_manager.update_column(id, "verification_code", ""):
-            not db.user_manager.update_column(id, "email_verified", True)
+        if not await db.user_manager.update_column(id, "email", new_email.email) or \
+            not await db.user_manager.update_column(id, "verification_code", ""):
+            not await db.user_manager.update_column(id, "email_verified", True)
             return Response(status_code=500)
         
         return Response(status_code=204) # Valid code - password updated
@@ -86,7 +88,7 @@ async def update_email(request: Request, new_email: EmailUpdateRequest, user: Un
 async def update_name(request: Request, name: NameUpdateRequest, user: Union[bool, dict] = Depends(auth_dependency)):
     new_name = name.name
 
-    if not db.user_manager.update_column(user.get("id"), "name", new_name):
+    if not await db.user_manager.update_column(user.get("id"), "name", new_name):
         return Response(status_code=400)
 
     return Response(status_code=204)
@@ -95,7 +97,7 @@ async def update_name(request: Request, name: NameUpdateRequest, user: Union[boo
 async def update_name(request: Request, pfp_data: PFPUpdateRequest, user: Union[bool, dict] = Depends(auth_dependency)):
     new_pfp = pfp_data.image
 
-    if not db.user_manager.update_column(user.get("id"), "pfp", new_pfp):
+    if not await db.user_manager.update_column(user.get("id"), "pfp", new_pfp):
         return Response(status_code=400)
 
     return Response(status_code=204)
@@ -112,7 +114,7 @@ async def resend_verification_email(request: Request, user: Union[bool, dict] = 
     
 @router.post("/verify")
 async def verify_email(request: Request, id: str):
-    if not db.user_manager.update_column(id, "email_verified", True):
+    if not await db.user_manager.update_column(id, "email_verified", True):
         return Response(status_code=400)
     
     return Response(status_code=204)

@@ -27,7 +27,7 @@ class BaseManager:
             session.commit()
 
 class UserManager(BaseManager):
-    def get_data_by_id(self, id: str):
+    async def get_data_by_id(self, id: str):
         with self.get_session() as session:
             user = session.query(User).filter(User.id == id).first()
                 
@@ -49,7 +49,7 @@ class UserManager(BaseManager):
                 
             return False
 
-    def insert(self, user: dict):
+    async def insert(self, user: dict):
         with self.get_session() as session:
             user_obj = User(
                 id=user.get('id'),
@@ -68,7 +68,7 @@ class UserManager(BaseManager):
             session.add(user_obj)
             session.commit()
 
-    def get_by_email(self, email: str):
+    async def get_by_email(self, email: str):
         with self.get_session() as session:
             user = session.query(User).filter(User.email == email).first()
             
@@ -78,21 +78,21 @@ class UserManager(BaseManager):
                     "joined_on": str(user.joined_on), "history": user.history, "email_verified": user.email_verified,
                     "has_noter_access": user.has_noter_access, "verification_code": user.verification_code}
 
-    def get_notes(self, request: Request):
+    async def get_notes(self, request: Request):
         user_id = from_jwt(str(request.cookies.get("authenticate")))
         with self.get_session() as session:
             notes = session.query(Note).filter(Note.owner_id == user_id).all()
             return [{"id": note.id, "type": note.type, "name": note.name, "path": note.path,
                 "last_edited": str(note.last_edited), "created_on": str(note.created_on), "blocks": note.blocks} for note in notes]
     
-    def get_folders(self, request: Request):
+    async def get_folders(self, request: Request):
         user_id = from_jwt(str(request.cookies.get("authenticate")))
         with self.get_session() as session:  
             folders = session.query(Folder).filter(Folder.owner_id == user_id).all()
             return [{"id": folder.id, "type": "folder", "name": folder.name, "path": folder.path,
                 "last_edited": str(folder.last_edited), "created_on": str(folder.created_on)} for folder in folders]
     
-    def update_column(self, user_id, column_name, column_value):
+    async def update_column(self, user_id, column_name, column_value):
         if not is_valid_uuid4(user_id): return False
             
         with self.get_session() as session:
@@ -103,7 +103,7 @@ class UserManager(BaseManager):
                 return True
             return False
         
-    def delete(self, user_id: str):
+    async def delete(self, user_id: str):
         with self.get_session() as session:
             try:
                 # Remove items with foreign key relationships first
@@ -119,7 +119,7 @@ class UserManager(BaseManager):
 
         
 class NoteManager(BaseManager):
-    def insert(self, note: dict):
+    async def insert(self, note: dict):
         with self.get_session() as session:
             note_obj = Note(
                 id=note.get('id'),
@@ -134,7 +134,7 @@ class NoteManager(BaseManager):
             session.add(note_obj)
             session.commit()
 
-    def update_blocks_by_id(self, request: Request, id: str, new_blocks: str):
+    async def update_blocks_by_id(self, request: Request, id: str, new_blocks: str):
         user_id = from_jwt(str(request.cookies.get("authenticate")))
         with self.get_session() as session:
             notes = session.query(Note).filter(Note.id == id, Note.owner_id == user_id).all()
@@ -145,7 +145,7 @@ class NoteManager(BaseManager):
 
             session.commit()
         
-    def get_by_id(self, request: Request, id:str):
+    async def get_by_id(self, request: Request, id:str):
         user_id = from_jwt(str(request.cookies.get("authenticate")))
     
         with self.get_session() as session:
@@ -167,7 +167,7 @@ class NoteManager(BaseManager):
 
     
 class FolderManager(BaseManager):
-    def does_path_exist(self, request: Request, fullpath: list):
+    async def does_path_exist(self, request: Request, fullpath: list):
         if len(fullpath) == 0: 
             return True
 
@@ -181,7 +181,7 @@ class FolderManager(BaseManager):
 
             return False
 
-    def insert(self, folder: dict):
+    async def insert(self, folder: dict):
         with self.get_session() as session:
             folder_obj = Folder(
                 id=folder.get('id'),
@@ -233,14 +233,14 @@ class DB:
             return False
 
         
-    def is_authenticated(self, request: Request) -> bool:
+    async def is_authenticated(self, request: Request) -> bool:
         user_id = from_jwt(str(request.cookies.get("authenticate")))
         with self.get_session() as session:
             user = session.query(User).filter(User.id == user_id).first()
             return user is not None
 
 
-    def get_item(self, request: Request, id: str):
+    async def get_item(self, request: Request, id: str):
         user_id = from_jwt(str(request.cookies.get("authenticate")))
 
         with self.get_session() as session:
@@ -273,7 +273,7 @@ class DB:
             return False
 
 
-    def delete_item_by_id(self, request: Request, id: str):
+    async def delete_item_by_id(self, request: Request, id: str):
         user_id = from_jwt(str(request.cookies.get("authenticate")))
 
         with self.get_session() as session:
@@ -286,7 +286,7 @@ class DB:
             session.commit()
 
 
-    def update_folder(self, folder: Folder, old_path: list, new_path: list, new_name: str):
+    async def update_folder(self, folder: Folder, old_path: list, new_path: list, new_name: str):
         child_items = []
         
         folder.name = new_name
@@ -302,11 +302,11 @@ class DB:
                 if item.type != "folder":
                     item.path = new_path + [folder.id]
                 elif item.type == "folder":
-                    self.update_folder(item, item.path, (new_path + [folder.id]), item.name)
+                    await self.update_folder(item, item.path, (new_path + [folder.id]), item.name)
 
             session.commit()
 
-    def update_metadata_by_id(self, request: Request, id: str, new_name: str, new_path: list):
+    async def update_metadata_by_id(self, request: Request, id: str, new_name: str, new_path: list):
         user_id = from_jwt(str(request.cookies.get("authenticate")))
       
         with self.get_session() as session:
@@ -319,7 +319,7 @@ class DB:
                 return
             
             folder = session.query(Folder).filter(Folder.id == id, Folder.owner_id == user_id).first()
-            self.update_folder(folder, folder.path, new_path, new_name)
+            await self.update_folder(folder, folder.path, new_path, new_name)
 
 
 db = DB(os.environ['SQLALCHEMY_URL'])

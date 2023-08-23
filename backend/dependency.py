@@ -12,10 +12,10 @@ from backend.utils import from_jwt
 async def auth_dependency(request: Request) -> Union[bool, dict]:
     user_id = from_jwt(str(request.cookies.get("authenticate")))
     
-    if not db.is_authenticated(request):
+    if not await db.is_authenticated(request):
         raise HTTPException(status_code=401, detail="Not Authenticated")
     
-    return json.loads(db.user_manager.get_data_by_id(user_id))
+    return json.loads(await db.user_manager.get_data_by_id(user_id))
 
 async def require_access_flag(flag: str):
     # If in testing environment, just skip this because the meta server isn't run in test
