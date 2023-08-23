@@ -1,14 +1,19 @@
-import pytest
+import pytest, asyncio
 
 from .context import db, client, TEST_USER_EMAIL, TEST_USER_PASSWORD
 from backend.tables import User
 from backend.make_objects import make_user
 from backend.utils import hash_password
 
-async def pytest_sessionstart():
+def pytest_sessionstart():
     print('Session starting... creating test user.')
     user = make_user(TEST_USER_EMAIL, hash_password(TEST_USER_PASSWORD))
-    await db.user_manager.insert(user)
+    
+    loop = asyncio.new_event_loop() # This function cannot be asynchronous but must await the insert user function. Asyncio event loop instead of 'await'
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(db.user_manager.insert(user))
+    loop.close()
+    
     print('Created test user successfully.')
 
 
