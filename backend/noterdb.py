@@ -10,6 +10,7 @@ from starlette.requests import Request
 
 from backend.utils import from_jwt, is_valid_uuid4
 from backend.tables import User, Note, Folder
+from backend.sanitize import is_valid_blocks
 
 class BaseManager:
     def __init__(self, session):
@@ -134,16 +135,20 @@ class NoteManager(BaseManager):
             session.add(note_obj)
             session.commit()
 
-    async def update_blocks_by_id(self, request: Request, id: str, new_blocks: str):
+    async def update_blocks_by_id(self, request: Request, id: str, new_blocks: list):
         user_id = from_jwt(str(request.cookies.get("authenticate")))
+        if not is_valid_blocks(new_blocks): return False
+        
         with self.get_session() as session:
             notes = session.query(Note).filter(Note.id == id, Note.owner_id == user_id).all()
 
             for note in notes:
-                note.blocks = json.loads(new_blocks)
+                note.blocks = json.loads(json.dumps(new_blocks))
                 note.last_edited = datetime.now().isoformat()
 
             session.commit()
+            
+        return True
         
     async def get_by_id(self, request: Request, id:str):
         user_id = from_jwt(str(request.cookies.get("authenticate")))
@@ -284,6 +289,8 @@ class DB:
             session.query(Folder).filter(Folder.id == id, Folder.owner_id == user_id).delete()
             
             session.commit()
+            
+        return True
 
 
     async def update_folder(self, folder: Folder, old_path: list, new_path: list, new_name: str):

@@ -27,15 +27,15 @@ async def update_metadata(request: Request, update_info: ItemMetadataRequest, id
 async def update_blocks(request: Request, id: str, is_auth: Union[bool, dict] = Depends(auth_dependency)):
     try: newblockinfo = await request.json()
     except json.decoder.JSONDecodeError: return Response(status_code=400)
-
-    await db.note_manager.update_blocks_by_id(request, id, json.dumps(newblockinfo))
+    
+    if not await db.note_manager.update_blocks_by_id(request, id, newblockinfo): return Response(status_code=400)
     
     return Response(status_code=204)
     
     
 @router.delete("/items/delete")
 async def delete_item(request: Request, id: str, is_auth: Union[bool, dict] = Depends(auth_dependency)):
-    await db.delete_item_by_id(request, id)
+    if not await db.delete_item_by_id(request, id): return Response(status_code=400)
     return Response(status_code=204)
         
     #return Response(status_code=400)

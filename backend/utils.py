@@ -52,8 +52,8 @@ def is_valid_uuid4(uuid: str):
     if len(uuid) != 36:
         return False
 
-    illegal_chars = "!@#$%^&*()+?_=,<>/" # All special characters besides '-'
-    if any(c in illegal_chars for c in uuid):
+    # All special characters besides '-'
+    if any(c in "!@#$%^&*()+?_=,<>/" for c in uuid):
         return False
         
     # Check for 8-4-4-4-12 Constant
